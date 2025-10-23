@@ -174,9 +174,16 @@ fun TransactionsScreen(
     }
 
     if (showTransactionDetails && selectedTransaction != null) {
+        var itemNames by remember { mutableStateOf<Map<Long, String>>(emptyMap()) }
+        
+        LaunchedEffect(selectedTransactionItems) {
+            itemNames = viewModel.getItemNames(selectedTransactionItems.map { it.itemId })
+        }
+        
         TransactionDetailsDialog(
             transaction = selectedTransaction!!,
             items = selectedTransactionItems,
+            itemNames = itemNames,
             onDismiss = {
                 showTransactionDetails = false
                 viewModel.selectTransaction(null)
@@ -241,6 +248,7 @@ private fun TransactionCard(
 private fun TransactionDetailsDialog(
     transaction: Transaction,
     items: List<TransactionItem>,
+    itemNames: Map<Long, String>,
     onDismiss: () -> Unit,
     onReprint: () -> Unit
 ) {
@@ -272,7 +280,7 @@ private fun TransactionDetailsDialog(
                         modifier = Modifier.fillMaxWidth(),
                         horizontalArrangement = Arrangement.SpaceBetween
                     ) {
-                        Text("${item.quantity}x @ ${formatPrice(item.unitPrice)}")
+                        Text("${item.quantity}x ${itemNames[item.itemId] ?: "Unknown Item"}")
                         Text(formatPrice(item.lineTotal))
                     }
                 }

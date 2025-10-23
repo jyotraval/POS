@@ -1,6 +1,7 @@
 package com.example.pos.ui.screens
 
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Check
 import androidx.compose.material3.*
@@ -35,6 +36,10 @@ fun SettingsScreen(
     var showResetDialog by remember { mutableStateOf(false) }
     var showSaveSuccess by remember { mutableStateOf(false) }
     var showClearTransactionsDialog by remember { mutableStateOf(false) }
+    
+    // Confirmation text fields
+    var clearConfirmText by remember { mutableStateOf("") }
+    var resetConfirmText by remember { mutableStateOf("") }
 
     LaunchedEffect(settings) {
         if (settings != null) {
@@ -80,14 +85,15 @@ fun SettingsScreen(
             )
         }
     ) { padding ->
-        Column(
+        LazyColumn(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(padding)
                 .padding(16.dp),
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
-            Card {
+            item {
+                Card {
                 Column(
                     modifier = Modifier
                         .fillMaxWidth()
@@ -115,8 +121,10 @@ fun SettingsScreen(
                     )
                 }
             }
+            }
 
-            Card {
+            item {
+                Card {
                 Column(
                     modifier = Modifier
                         .fillMaxWidth()
@@ -132,8 +140,10 @@ fun SettingsScreen(
                     )
                 }
             }
+            }
 
-            Card {
+            item {
+                Card {
                 Column(
                     modifier = Modifier
                         .fillMaxWidth()
@@ -211,65 +221,13 @@ fun SettingsScreen(
                     }
                 }
             }
-
-            Card {
-                Column(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(16.dp),
-                    verticalArrangement = Arrangement.spacedBy(16.dp)
-                ) {
-                    Text(
-                        "Danger Zone", 
-                        style = MaterialTheme.typography.titleLarge,
-                        color = MaterialTheme.colorScheme.error
-                    )
-                    
-                    Button(
-                        onClick = { showClearTransactionsDialog = true },
-                        colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.error),
-                        modifier = Modifier.fillMaxWidth()
-                    ) {
-                        Text("Clear All Transactions")
-                    }
-                    
-                    Button(
-                        onClick = { showResetDialog = true },
-                        colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.error),
-                        modifier = Modifier.fillMaxWidth()
-                    ) {
-                        Text("Reset App")
-                    }
-                }
             }
+
+            
         }
     }
 
-    if (showResetDialog) {
-        AlertDialog(
-            onDismissRequest = { showResetDialog = false },
-            title = { Text("Reset Application") },
-            text = { Text("This will delete all data. Type 'delete' to confirm.") },
-            confirmButton = {
-                TextButton(
-                    onClick = {
-                        scope.launch {
-                            settingsDao.deleteAllSettings()
-                            showResetDialog = false
-                            onNavigateBack()
-                        }
-                    }
-                ) {
-                    Text("Reset")
-                }
-            },
-            dismissButton = {
-                TextButton(onClick = { showResetDialog = false }) {
-                    Text("Cancel")
-                }
-            }
-        )
-    }
+    
 
     if (showSaveSuccess) {
         AlertDialog(
@@ -284,28 +242,5 @@ fun SettingsScreen(
         )
     }
 
-    if (showClearTransactionsDialog) {
-        AlertDialog(
-            onDismissRequest = { showClearTransactionsDialog = false },
-            title = { Text("Clear All Transactions") },
-            text = { Text("This will permanently delete all transaction history. Type 'confirm' to proceed.") },
-            confirmButton = {
-                TextButton(
-                    onClick = {
-                        scope.launch {
-                            // TODO: Add clear transactions functionality
-                            showClearTransactionsDialog = false
-                        }
-                    }
-                ) {
-                    Text("Clear")
-                }
-            },
-            dismissButton = {
-                TextButton(onClick = { showClearTransactionsDialog = false }) {
-                    Text("Cancel")
-                }
-            }
-        )
-    }
+    
 }

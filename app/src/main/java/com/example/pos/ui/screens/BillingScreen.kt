@@ -27,6 +27,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.ui.text.input.KeyboardType
+import androidx.compose.foundation.clickable
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.pos.data.dao.CategoryDao
 import com.example.pos.data.dao.ItemDao
@@ -112,24 +113,50 @@ fun BillingScreen(
                 .fillMaxSize()
                 .padding(padding)
         ) {
-            // Categories
-            LazyRow(
-                contentPadding = PaddingValues(getResponsivePadding()),
-                horizontalArrangement = Arrangement.spacedBy(getResponsiveSpacing())
+            // Categories with enhanced styling
+            Card(
+                modifier = Modifier.fillMaxWidth(),
+                colors = CardDefaults.cardColors(
+                    containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.3f)
+                ),
+                elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
             ) {
-                item {
-                    FilterChip(
-                        selected = selectedCategoryId == null,
-                        onClick = { viewModel.setSelectedCategory(null) },
-                        label = { Text("All") }
-                    )
-                }
-                items(categories) { category ->
-                    FilterChip(
-                        selected = selectedCategoryId == category.id,
-                        onClick = { viewModel.setSelectedCategory(category.id) },
-                        label = { Text(category.name) }
-                    )
+                LazyRow(
+                    contentPadding = PaddingValues(getResponsivePadding()),
+                    horizontalArrangement = Arrangement.spacedBy(getResponsiveSpacing())
+                ) {
+                    item {
+                        FilterChip(
+                            selected = selectedCategoryId == null,
+                            onClick = { viewModel.setSelectedCategory(null) },
+                            label = { 
+                                Text(
+                                    "All",
+                                    fontWeight = FontWeight.Bold
+                                ) 
+                            },
+                            colors = FilterChipDefaults.filterChipColors(
+                                selectedContainerColor = MaterialTheme.colorScheme.primary,
+                                selectedLabelColor = MaterialTheme.colorScheme.onPrimary
+                            )
+                        )
+                    }
+                    items(categories) { category ->
+                        FilterChip(
+                            selected = selectedCategoryId == category.id,
+                            onClick = { viewModel.setSelectedCategory(category.id) },
+                            label = { 
+                                Text(
+                                    category.name,
+                                    fontWeight = FontWeight.Bold
+                                ) 
+                            },
+                            colors = FilterChipDefaults.filterChipColors(
+                                selectedContainerColor = MaterialTheme.colorScheme.primary,
+                                selectedLabelColor = MaterialTheme.colorScheme.onPrimary
+                            )
+                        )
+                    }
                 }
             }
 
@@ -256,18 +283,23 @@ private fun ItemTile(
         },
         modifier = Modifier
             .aspectRatio(1f)
-            .clip(RoundedCornerShape(12.dp)),
+            .clip(RoundedCornerShape(16.dp)),
         border = if (cartItem != null) {
-            BorderStroke(3.dp, SelectedItemBorder)
-        } else null,
+            BorderStroke(3.dp, MaterialTheme.colorScheme.primary)
+        } else {
+            BorderStroke(1.dp, MaterialTheme.colorScheme.outline.copy(alpha = 0.3f))
+        },
         colors = CardDefaults.cardColors(
             containerColor = if (cartItem != null) {
-                MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.1f)
+                MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.2f)
             } else {
                 MaterialTheme.colorScheme.surface
             }
         ),
-        elevation = CardDefaults.cardElevation(defaultElevation = getResponsiveCardElevation())
+        elevation = CardDefaults.cardElevation(
+            defaultElevation = if (cartItem != null) 8.dp else 4.dp,
+            pressedElevation = if (cartItem != null) 12.dp else 8.dp
+        )
     ) {
         Box(
             modifier = Modifier.fillMaxSize(),
@@ -323,7 +355,8 @@ private fun ItemTile(
                                 fontWeight = FontWeight.Bold,
                                 fontSize = if (isTablet()) 18.sp else 16.sp
                             ),
-                            color = MaterialTheme.colorScheme.primary
+                            color = MaterialTheme.colorScheme.primary,
+                            modifier = Modifier.clickable { showQuantityDialog = true }
                         )
                         IconButton(
                             onClick = { onUpdateQuantity(cartItem.quantity + 1) },
@@ -763,11 +796,16 @@ private fun BottomActionBar(
         
         Spacer(modifier = Modifier.height(getResponsiveSpacing()))
         
-        // Cart Summary
+        // Cart Summary with enhanced styling
         Card(
             modifier = Modifier.fillMaxWidth(),
             colors = CardDefaults.cardColors(
-                containerColor = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.3f)
+                containerColor = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.4f)
+            ),
+            elevation = CardDefaults.cardElevation(defaultElevation = 6.dp),
+            border = BorderStroke(
+                2.dp,
+                MaterialTheme.colorScheme.primary.copy(alpha = 0.3f)
             )
         ) {
             Row(
@@ -780,12 +818,16 @@ private fun BottomActionBar(
                 Column {
                     Text(
                         text = "${cart.size} items",
-                        style = MaterialTheme.typography.bodyMedium,
+                        style = MaterialTheme.typography.bodyMedium.copy(
+                            fontWeight = FontWeight.Medium
+                        ),
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
                     Text(
                         text = formatPrice(total),
-                        style = MaterialTheme.typography.titleLarge.copy(fontWeight = FontWeight.Bold),
+                        style = MaterialTheme.typography.titleLarge.copy(
+                            fontWeight = FontWeight.Bold
+                        ),
                         color = MaterialTheme.colorScheme.primary
                     )
                 }
@@ -797,26 +839,47 @@ private fun BottomActionBar(
                         onClick = onShowDiscountDialog,
                         colors = ButtonDefaults.outlinedButtonColors(
                             contentColor = MaterialTheme.colorScheme.primary
+                        ),
+                        border = BorderStroke(
+                            2.dp,
+                            MaterialTheme.colorScheme.primary
                         )
                     ) {
-                        Text("Discount")
+                        Text(
+                            "Discount",
+                            fontWeight = FontWeight.Bold
+                        )
                     }
                     Button(
                         onClick = onShowClearCartDialog,
                         colors = ButtonDefaults.buttonColors(
                             containerColor = MaterialTheme.colorScheme.error
+                        ),
+                        elevation = ButtonDefaults.buttonElevation(
+                            defaultElevation = 4.dp,
+                            pressedElevation = 8.dp
                         )
                     ) {
-                        Text("Clear")
+                        Text(
+                            "Clear",
+                            fontWeight = FontWeight.Bold
+                        )
                     }
                     Button(
                         onClick = onShowBillPreview,
                         enabled = cart.isNotEmpty(),
                         colors = ButtonDefaults.buttonColors(
                             containerColor = CartHighlight
+                        ),
+                        elevation = ButtonDefaults.buttonElevation(
+                            defaultElevation = 6.dp,
+                            pressedElevation = 10.dp
                         )
                     ) {
-                        Text("Bill")
+                        Text(
+                            "Bill",
+                            fontWeight = FontWeight.Bold
+                        )
                     }
                 }
             }

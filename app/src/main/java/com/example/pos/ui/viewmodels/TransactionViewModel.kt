@@ -14,6 +14,7 @@ import com.example.pos.util.PrinterUtils
 import kotlinx.coroutines.ExperimentalCoroutinesApi
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.runBlocking
 import java.time.*
 import java.time.temporal.ChronoUnit
 import java.util.*
@@ -100,6 +101,16 @@ class TransactionViewModel(
 
     fun selectTransaction(transaction: Transaction?) {
         _selectedTransaction.value = transaction
+    }
+
+    suspend fun getItemNames(itemIds: List<Long>): Map<Long, String> {
+        return try {
+            itemIds.associateWith { itemId ->
+                itemDao.getItemById(itemId)?.name ?: "Unknown Item"
+            }
+        } catch (e: Exception) {
+            itemIds.associateWith { "Unknown Item" }
+        }
     }
 
     fun reprintReceipt(transaction: Transaction) {

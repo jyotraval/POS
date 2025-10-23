@@ -1,5 +1,6 @@
 package com.example.pos.ui.screens
 
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
@@ -16,6 +17,7 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.pos.data.dao.ItemDao
@@ -100,26 +102,74 @@ fun DashboardScreen(
                 }
             }
 
-            // Sales Chart
+            // Sales Chart with enhanced styling
             item {
                 Card(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .height(300.dp)
+                        .height(350.dp),
+                    colors = CardDefaults.cardColors(
+                        containerColor = MaterialTheme.colorScheme.surface
+                    ),
+                    elevation = CardDefaults.cardElevation(defaultElevation = 8.dp),
+                    border = BorderStroke(
+                        2.dp,
+                        MaterialTheme.colorScheme.primary.copy(alpha = 0.2f)
+                    )
                 ) {
                     Column(
                         modifier = Modifier
                             .fillMaxSize()
-                            .padding(16.dp)
+                            .padding(20.dp)
+                    ) {
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.SpaceBetween,
+                            verticalAlignment = Alignment.CenterVertically
                     ) {
                         Text(
                             text = if (viewMode == DashboardViewModel.ViewMode.DAILY)
-                                "Daily Sales"
-                            else
-                                "Monthly Sales",
-                            style = MaterialTheme.typography.titleLarge
-                        )
-                        Spacer(modifier = Modifier.height(16.dp))
+                                    "Daily Sales"
+                                else
+                                    "Monthly Sales",
+                                style = MaterialTheme.typography.titleLarge.copy(
+                                    fontWeight = FontWeight.Bold
+                                ),
+                                color = MaterialTheme.colorScheme.primary
+                            )
+                            
+                            // Toggle buttons
+                            Row {
+                                FilterChip(
+                                    selected = viewMode == DashboardViewModel.ViewMode.DAILY,
+                                    onClick = { 
+                                        if (viewMode != DashboardViewModel.ViewMode.DAILY) {
+                                            viewModel.toggleViewMode()
+                                        }
+                                    },
+                                    label = { Text("Daily") },
+                                    colors = FilterChipDefaults.filterChipColors(
+                                        selectedContainerColor = MaterialTheme.colorScheme.primary,
+                                        selectedLabelColor = MaterialTheme.colorScheme.onPrimary
+                                    )
+                                )
+                                Spacer(modifier = Modifier.width(8.dp))
+                                FilterChip(
+                                    selected = viewMode == DashboardViewModel.ViewMode.MONTHLY,
+                                    onClick = { 
+                                        if (viewMode != DashboardViewModel.ViewMode.MONTHLY) {
+                                            viewModel.toggleViewMode()
+                                        }
+                                    },
+                                    label = { Text("Monthly") },
+                                    colors = FilterChipDefaults.filterChipColors(
+                                        selectedContainerColor = MaterialTheme.colorScheme.primary,
+                                        selectedLabelColor = MaterialTheme.colorScheme.onPrimary
+                                    )
+                                )
+                            }
+                        }
+                        Spacer(modifier = Modifier.height(20.dp))
                         // Simple Bar Chart Visualization
                         if (salesData.isNotEmpty()) {
                             val maxAmount = salesData.maxOfOrNull { it.total } ?: 1.0
