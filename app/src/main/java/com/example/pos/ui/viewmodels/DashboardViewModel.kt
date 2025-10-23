@@ -15,7 +15,8 @@ data class DailySales(
 
 data class TopSellingItem(
     val itemName: String,
-    val quantity: Int,
+    val unitPrice: Double,
+    val quantitySold: Int,
     val revenue: Double
 )
 
@@ -95,13 +96,13 @@ class DashboardViewModel(
         initialValue = emptyList()
     )
 
-    val topSellingItems = combine(_startDate, _endDate) { start, end ->
-        itemDao.getTopSellingItems(10).first()
-    }.stateIn(
-        scope = viewModelScope,
-        started = SharingStarted.WhileSubscribed(5000),
-        initialValue = emptyList()
-    )
+    val topSellingItems = itemDao.getTopSellingItems(10)
+        .stateIn(
+            scope = viewModelScope,
+            started = SharingStarted.WhileSubscribed(5000),
+            initialValue = emptyList()
+        )
+
 
     val totalSales = salesData.map { data ->
         data.sumOf { it.total }

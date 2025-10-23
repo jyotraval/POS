@@ -1,5 +1,7 @@
 package com.example.pos.ui.screens
 
+import android.widget.Toast
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material.icons.Icons
@@ -13,6 +15,11 @@ import com.example.pos.data.dao.SettingsDao
 import com.example.pos.data.entity.Settings
 import com.example.pos.ui.components.PosTopBar
 import kotlinx.coroutines.launch
+import androidx.compose.ui.text.SpanStyle
+import androidx.compose.ui.text.buildAnnotatedString
+import androidx.compose.ui.text.withStyle
+import androidx.compose.ui.text.font.FontWeight
+
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -223,7 +230,49 @@ fun SettingsScreen(
             }
             }
 
-            
+            item {
+                Card(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(16.dp),
+                    shape = MaterialTheme.shapes.medium,
+                    elevation = CardDefaults.cardElevation(defaultElevation = 8.dp)
+                ) {
+                    Column(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(24.dp),
+                        verticalArrangement = Arrangement.spacedBy(12.dp)
+                    ) {
+                        var tapCount by remember { mutableStateOf(0) }
+                        val context = LocalContext.current
+
+                        Text(
+                            text = "About",
+                            style = MaterialTheme.typography.headlineSmall,
+                            color = MaterialTheme.colorScheme.primary,
+                            modifier = Modifier.clickable {
+                                tapCount++
+                                if (tapCount == 5) {
+                                    Toast.makeText(context, "v1.0.0 (Stable)", Toast.LENGTH_SHORT).show()
+                                    tapCount = 0
+                                }
+                            }
+                        )
+                        Text(
+                            text = "Crafted by Jyot Raval",
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                        Text(
+                            text= "To keeping sales seamless and your day effortless.",
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                    }
+                }
+            }
+
         }
     }
 

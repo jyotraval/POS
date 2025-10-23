@@ -260,7 +260,7 @@ fun DashboardScreen(
                             .padding(16.dp)
                     ) {
                         Text(
-                            text = "Top Selling Items",
+                            text = "Top Selling (Items)",
                             style = MaterialTheme.typography.titleLarge,
                             modifier = Modifier.padding(bottom = 16.dp)
                         )
@@ -272,14 +272,21 @@ fun DashboardScreen(
                                 horizontalArrangement = Arrangement.SpaceBetween
                             ) {
                                 Column {
-                                    Text(item.name)
                                     Text(
-                                        "Price: ${formatPrice(item.price)}",
+                                        item.itemName,
+                                        style = MaterialTheme.typography.titleMedium
+                                        )
+                                    Text(
+                                        "Quantity Sold: ${item.quantitySold}",
                                         style = MaterialTheme.typography.bodyMedium,
                                         color = MaterialTheme.colorScheme.onSurfaceVariant
                                     )
                                 }
-                                Text(formatPrice(item.price))
+                                Text(
+                                    formatPrice(item.revenue),
+                                    style = MaterialTheme.typography.titleMedium,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                                    )
                             }
                         }
                     }

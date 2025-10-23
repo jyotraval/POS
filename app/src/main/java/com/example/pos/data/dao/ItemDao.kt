@@ -3,6 +3,8 @@ package com.example.pos.data.dao
 import androidx.room.*
 import com.example.pos.data.entity.Item
 import kotlinx.coroutines.flow.Flow
+import com.example.pos.data.model.TopSellingItem
+
 
 @Dao
 interface ItemDao {
@@ -25,11 +27,19 @@ interface ItemDao {
     suspend fun getItemById(id: Long): Item?
 
     @Query("""
-        SELECT i.* FROM items i
-        INNER JOIN transaction_items ti ON i.id = ti.itemId
-        GROUP BY i.id
-        ORDER BY SUM(ti.quantity) DESC
-        LIMIT :limit
-    """)
-    fun getTopSellingItems(limit: Int): Flow<List<Item>>
+    SELECT 
+        i.name AS itemName,
+        SUM(ti.quantity) AS quantitySold,
+        SUM(ti.quantity * i.price) AS revenue
+    FROM items i
+    INNER JOIN transaction_items ti ON i.id = ti.itemId
+    GROUP BY i.id
+    ORDER BY quantitySold DESC
+    LIMIT :limit
+""")
+    fun getTopSellingItems(limit: Int): Flow<List<TopSellingItem>>
+
+
+
+
 }
