@@ -1,6 +1,7 @@
 package com.example.pos.ui.viewmodels
 
 import android.annotation.SuppressLint
+import android.content.Context
 import android.os.Build
 import androidx.annotation.RequiresApi
 import androidx.lifecycle.ViewModel
@@ -21,6 +22,7 @@ import java.util.*
 
 @OptIn(kotlinx.coroutines.ExperimentalCoroutinesApi::class)
 class TransactionViewModel(
+    private val context: Context,
     private val transactionDao: TransactionDao,
     private val itemDao: ItemDao,
     private val settingsDao: SettingsDao
@@ -139,6 +141,7 @@ class TransactionViewModel(
                 }
 
                 val success = PrinterUtils.printReceipt(
+                    context = context,
                     macAddress = printerMac,
                     stallName = settings.stallName,
                     address = settings.address,
@@ -176,6 +179,7 @@ class TransactionViewModel(
     }
 
     class Factory(
+        private val context: Context,
         private val transactionDao: TransactionDao,
         private val itemDao: ItemDao,
         private val settingsDao: SettingsDao
@@ -183,7 +187,7 @@ class TransactionViewModel(
         @Suppress("UNCHECKED_CAST")
         override fun <T : ViewModel> create(modelClass: Class<T>): T {
             if (modelClass.isAssignableFrom(TransactionViewModel::class.java)) {
-                return TransactionViewModel(transactionDao, itemDao, settingsDao) as T
+                return TransactionViewModel(context, transactionDao, itemDao, settingsDao) as T
             }
             throw IllegalArgumentException("Unknown ViewModel class")
         }

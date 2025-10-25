@@ -1,5 +1,6 @@
 package com.example.pos.ui.screens
 
+import android.content.Context
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -30,13 +31,14 @@ import java.util.*
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun TransactionsScreen(
+    context: Context,
     transactionDao: TransactionDao,
     itemDao: ItemDao,
     settingsDao: SettingsDao,
     onNavigateBack: () -> Unit
 ) {
     val viewModel: TransactionViewModel = viewModel(
-        factory = TransactionViewModel.Factory(transactionDao, itemDao, settingsDao)
+        factory = TransactionViewModel.Factory(context, transactionDao, itemDao, settingsDao)
     )
 
     val transactions by viewModel.transactions.collectAsState()

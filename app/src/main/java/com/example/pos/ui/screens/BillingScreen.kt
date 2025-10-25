@@ -1,5 +1,6 @@
 package com.example.pos.ui.screens
 
+import android.content.Context
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
@@ -47,6 +48,7 @@ import java.util.*
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun BillingScreen(
+    context: Context,
     categoryDao: CategoryDao,
     itemDao: ItemDao,
     transactionDao: TransactionDao,
@@ -54,7 +56,7 @@ fun BillingScreen(
     onNavigateBack: () -> Unit
 ) {
     val viewModel: BillingViewModel = viewModel(
-        factory = BillingViewModel.Factory(categoryDao, itemDao, transactionDao, settingsDao)
+        factory = BillingViewModel.Factory(context, categoryDao, itemDao, transactionDao, settingsDao)
     )
 
     val categories by viewModel.categories.collectAsState()

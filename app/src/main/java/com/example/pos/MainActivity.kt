@@ -65,6 +65,7 @@ class MainActivity : ComponentActivity() {
 
                             composable(Screen.Billing.route) {
                                 BillingScreen(
+                                    context = this@MainActivity,
                                     categoryDao = database.categoryDao(),
                                     itemDao = database.itemDao(),
                                     transactionDao = database.transactionDao(),
@@ -75,6 +76,7 @@ class MainActivity : ComponentActivity() {
 
                             composable(Screen.Transactions.route) {
                                 TransactionsScreen(
+                                    context = this@MainActivity,
                                     transactionDao = database.transactionDao(),
                                     itemDao = database.itemDao(),
                                     settingsDao = database.settingsDao(),

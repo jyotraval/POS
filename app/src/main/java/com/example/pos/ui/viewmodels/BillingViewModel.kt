@@ -1,5 +1,6 @@
 package com.example.pos.ui.viewmodels
 
+import android.content.Context
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.ViewModelProvider
 import androidx.lifecycle.viewModelScope
@@ -21,6 +22,7 @@ import java.util.*
 
 @OptIn(ExperimentalCoroutinesApi::class)
 class BillingViewModel(
+    private val context: Context,
     private val categoryDao: CategoryDao,
     private val itemDao: ItemDao,
     private val transactionDao: TransactionDao,
@@ -219,6 +221,7 @@ class BillingViewModel(
 
                 // Print receipt
                 val success = PrinterUtils.printReceipt(
+                    context = context,
                     macAddress = printerMac,
                     stallName = settings.stallName,
                     address = settings.address,
@@ -316,6 +319,7 @@ class BillingViewModel(
     }
 
     class Factory(
+        private val context: Context,
         private val categoryDao: CategoryDao,
         private val itemDao: ItemDao,
         private val transactionDao: TransactionDao,
@@ -324,7 +328,7 @@ class BillingViewModel(
         @Suppress("UNCHECKED_CAST")
         override fun <T : ViewModel> create(modelClass: Class<T>): T {
             if (modelClass.isAssignableFrom(BillingViewModel::class.java)) {
-                return BillingViewModel(categoryDao, itemDao, transactionDao, settingsDao) as T
+                return BillingViewModel(context, categoryDao, itemDao, transactionDao, settingsDao) as T
             }
             throw IllegalArgumentException("Unknown ViewModel class")
         }

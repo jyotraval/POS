@@ -1,16 +1,25 @@
 package com.example.pos.ui.screens
 
+import android.Manifest
+import android.content.pm.PackageManager
 import android.widget.Toast
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Check
+import androidx.compose.material.icons.filled.Bluetooth
+import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
+import androidx.core.content.ContextCompat
+import com.example.pos.util.PrinterUtils
 import com.example.pos.data.dao.SettingsDao
 import com.example.pos.data.entity.Settings
 import com.example.pos.ui.components.PosTopBar
@@ -47,6 +56,13 @@ fun SettingsScreen(
     // Confirmation text fields
     var clearConfirmText by remember { mutableStateOf("") }
     var resetConfirmText by remember { mutableStateOf("") }
+    
+    // Bluetooth device picker
+    var showBluetoothPicker by remember { mutableStateOf(false) }
+    var bluetoothDevices by remember { mutableStateOf<List<PrinterUtils.BluetoothDeviceInfo>>(emptyList()) }
+    var selectedDevice by remember { mutableStateOf<PrinterUtils.BluetoothDeviceInfo?>(null) }
+    var bluetoothPermissionGranted by remember { mutableStateOf(false) }
+    var bluetoothError by remember { mutableStateOf<String?>(null) }
 
     LaunchedEffect(settings) {
         if (settings != null) {
@@ -58,6 +74,46 @@ fun SettingsScreen(
             paddingTop = settings?.paddingTop?.toString() ?: "0"
             paddingBottom = settings?.paddingBottom?.toString() ?: "0"
             printerWidth = settings?.printerWidth?.toString() ?: "32"
+        }
+    }
+
+    // Permission launcher for Bluetooth
+    val bluetoothPermissionLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.RequestMultiplePermissions()
+    ) { permissions ->
+        val bluetoothConnectGranted = permissions[Manifest.permission.BLUETOOTH_CONNECT] ?: false
+        val bluetoothScanGranted = permissions[Manifest.permission.BLUETOOTH_SCAN] ?: false
+        
+        bluetoothPermissionGranted = bluetoothConnectGranted && bluetoothScanGranted
+        
+        if (bluetoothPermissionGranted) {
+            bluetoothDevices = PrinterUtils.getPairedBluetoothDevices(context)
+            bluetoothError = null
+        } else {
+            bluetoothError = "Bluetooth permissions are required to scan for devices"
+        }
+    }
+
+    // Check permissions on startup
+    LaunchedEffect(Unit) {
+        val hasBluetoothConnect = ContextCompat.checkSelfPermission(
+            context, Manifest.permission.BLUETOOTH_CONNECT
+        ) == PackageManager.PERMISSION_GRANTED
+        val hasBluetoothScan = ContextCompat.checkSelfPermission(
+            context, Manifest.permission.BLUETOOTH_SCAN
+        ) == PackageManager.PERMISSION_GRANTED
+        
+        bluetoothPermissionGranted = hasBluetoothConnect && hasBluetoothScan
+        
+        if (bluetoothPermissionGranted) {
+            bluetoothDevices = PrinterUtils.getPairedBluetoothDevices(context)
+        }
+    }
+
+    // Load Bluetooth devices when picker is shown
+    LaunchedEffect(showBluetoothPicker) {
+        if (showBluetoothPicker && bluetoothPermissionGranted) {
+            bluetoothDevices = PrinterUtils.getPairedBluetoothDevices(context)
         }
     }
 
@@ -100,7 +156,7 @@ fun SettingsScreen(
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
             item {
-                Card {
+            Card {
                 Column(
                     modifier = Modifier
                         .fillMaxWidth()
@@ -127,11 +183,11 @@ fun SettingsScreen(
                         modifier = Modifier.fillMaxWidth()
                     )
                 }
-            }
+                }
             }
 
             item {
-                Card {
+            Card {
                 Column(
                     modifier = Modifier
                         .fillMaxWidth()
@@ -146,11 +202,11 @@ fun SettingsScreen(
                         modifier = Modifier.fillMaxWidth()
                     )
                 }
-            }
+                }
             }
 
             item {
-                Card {
+            Card {
                 Column(
                     modifier = Modifier
                         .fillMaxWidth()
@@ -158,11 +214,120 @@ fun SettingsScreen(
                     verticalArrangement = Arrangement.spacedBy(16.dp)
                 ) {
                     Text("Printer Settings", style = MaterialTheme.typography.titleLarge)
+                    
+                    // Bluetooth Device Picker
+                    Card(
+                        modifier = Modifier.fillMaxWidth(),
+                        colors = CardDefaults.cardColors(
+                            containerColor = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.3f)
+                        )
+                    ) {
+                        Column(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(12.dp)
+                        ) {
+                            Row(
+                                modifier = Modifier.fillMaxWidth(),
+                                horizontalArrangement = Arrangement.SpaceBetween,
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                Text(
+                                    "Select Printer",
+                                    style = MaterialTheme.typography.titleMedium
+                                )
+                                Row {
+                                    IconButton(
+                                        onClick = { 
+                                            if (bluetoothPermissionGranted) {
+                                                bluetoothDevices = PrinterUtils.getPairedBluetoothDevices(context)
+                                            } else {
+                                                bluetoothPermissionLauncher.launch(
+                                                    arrayOf(
+                                                        Manifest.permission.BLUETOOTH_CONNECT,
+                                                        Manifest.permission.BLUETOOTH_SCAN
+                                                    )
+                                                )
+                                            }
+                                        }
+                                    ) {
+                                        Icon(Icons.Filled.Refresh, "Refresh")
+                                    }
+                                    Button(
+                                        onClick = { 
+                                            if (bluetoothPermissionGranted) {
+                                                showBluetoothPicker = true
+                                            } else {
+                                                bluetoothPermissionLauncher.launch(
+                                                    arrayOf(
+                                                        Manifest.permission.BLUETOOTH_CONNECT,
+                                                        Manifest.permission.BLUETOOTH_SCAN
+                                                    )
+                                                )
+                                            }
+                                        }
+                                    ) {
+                                        Icon(Icons.Filled.Bluetooth, "Select Printer")
+                                        Spacer(modifier = Modifier.width(8.dp))
+                                        Text("Choose Printer")
+                                    }
+                                }
+                            }
+                            
+                            if (selectedDevice != null) {
+                                Spacer(modifier = Modifier.height(8.dp))
+                                Text(
+                                    "Selected: ${selectedDevice!!.name}",
+                                    style = MaterialTheme.typography.bodyMedium,
+                                    color = MaterialTheme.colorScheme.primary
+                                )
+                                Text(
+                                    "MAC: ${selectedDevice!!.address}",
+                                    style = MaterialTheme.typography.bodySmall,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                                )
+                            } else if (printerMac.isNotBlank()) {
+                                Spacer(modifier = Modifier.height(8.dp))
+                                Text(
+                                    "Current: $printerMac",
+                                    style = MaterialTheme.typography.bodyMedium,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                                )
+                            }
+                            
+                            // Permission status and error messages
+                            if (!bluetoothPermissionGranted) {
+                                Spacer(modifier = Modifier.height(8.dp))
+                                Text(
+                                    "⚠️ Bluetooth permissions required",
+                                    style = MaterialTheme.typography.bodySmall,
+                                    color = MaterialTheme.colorScheme.error
+                                )
+                            } else if (bluetoothError != null) {
+                                Spacer(modifier = Modifier.height(8.dp))
+                                Text(
+                                    "❌ $bluetoothError",
+                                    style = MaterialTheme.typography.bodySmall,
+                                    color = MaterialTheme.colorScheme.error
+                                )
+                            } else if (bluetoothDevices.isEmpty()) {
+                                Spacer(modifier = Modifier.height(8.dp))
+                                Text(
+                                    "No paired devices found. Please pair your printer in Android Bluetooth settings.",
+                                    style = MaterialTheme.typography.bodySmall,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                                )
+                            }
+                        }
+                    }
+                    
+                    // Manual MAC input (fallback)
                     OutlinedTextField(
                         value = printerMac,
                         onValueChange = { printerMac = it },
-                        label = { Text("Printer MAC Address") },
-                        modifier = Modifier.fillMaxWidth()
+                        label = { Text("Printer MAC Address (Manual)") },
+                        modifier = Modifier.fillMaxWidth(),
+                        supportingText = { Text("Use device picker above for easier setup") }
                     )
                     Row(
                         modifier = Modifier.fillMaxWidth(),
@@ -226,8 +391,8 @@ fun SettingsScreen(
                     ) {
                         Text("Test Print")
                     }
+                    }
                 }
-            }
             }
 
             item {
@@ -254,7 +419,7 @@ fun SettingsScreen(
                             modifier = Modifier.clickable {
                                 tapCount++
                                 if (tapCount == 5) {
-                                    Toast.makeText(context, "v1.0.0 (Stable)", Toast.LENGTH_SHORT).show()
+                                    Toast.makeText(context, "v0.9.0 (beta)", Toast.LENGTH_SHORT).show()
                                     tapCount = 0
                                 }
                             }
@@ -291,5 +456,134 @@ fun SettingsScreen(
         )
     }
 
-    
+    // Bluetooth Device Picker Dialog
+    if (showBluetoothPicker) {
+        AlertDialog(
+            onDismissRequest = { showBluetoothPicker = false },
+            title = { 
+                Text(
+                    "Select Bluetooth Printer",
+                    style = MaterialTheme.typography.titleLarge
+                )
+            },
+            text = {
+                Column {
+                    if (!bluetoothPermissionGranted) {
+                        Text(
+                            "Bluetooth permissions are required to scan for devices.\n\nPlease grant permissions to continue.",
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = MaterialTheme.colorScheme.error
+                        )
+                        Spacer(modifier = Modifier.height(16.dp))
+                        Button(
+                            onClick = {
+                                bluetoothPermissionLauncher.launch(
+                                    arrayOf(
+                                        Manifest.permission.BLUETOOTH_CONNECT,
+                                        Manifest.permission.BLUETOOTH_SCAN
+                                    )
+                                )
+                            }
+                        ) {
+                            Text("Grant Permissions")
+                        }
+                    } else if (bluetoothDevices.isEmpty()) {
+                        Text(
+                            "No paired Bluetooth devices found.\n\nPlease pair your printer in Android Bluetooth settings first.",
+                            style = MaterialTheme.typography.bodyMedium
+                        )
+                        Spacer(modifier = Modifier.height(16.dp))
+                        Text(
+                            "Steps to pair your printer:\n1. Go to Android Settings\n2. Go to Bluetooth\n3. Turn on Bluetooth\n4. Put your printer in pairing mode\n5. Select your printer from the list",
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                    } else {
+                        Text(
+                            "Choose your printer from the list below:",
+                            style = MaterialTheme.typography.bodyMedium
+                        )
+                        Spacer(modifier = Modifier.height(16.dp))
+                        
+                        bluetoothDevices.forEach { device ->
+                            Card(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .clickable { 
+                                        selectedDevice = device
+                                        printerMac = device.address
+                                        showBluetoothPicker = false
+                                    },
+                                colors = CardDefaults.cardColors(
+                                    containerColor = if (device.isPrinter) {
+                                        MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.3f)
+                                    } else {
+                                        MaterialTheme.colorScheme.surface
+                                    }
+                                )
+                            ) {
+                                Row(
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .padding(12.dp),
+                                    verticalAlignment = Alignment.CenterVertically
+                                ) {
+                                    Icon(
+                                        Icons.Filled.Bluetooth,
+                                        "Bluetooth Device",
+                                        tint = if (device.isPrinter) {
+                                            MaterialTheme.colorScheme.primary
+                                        } else {
+                                            MaterialTheme.colorScheme.onSurfaceVariant
+                                        }
+                                    )
+                                    Spacer(modifier = Modifier.width(12.dp))
+                                    Column {
+                                        Text(
+                                            device.name,
+                                            style = MaterialTheme.typography.titleMedium,
+                                            color = if (device.isPrinter) {
+                                                MaterialTheme.colorScheme.primary
+                                            } else {
+                                                MaterialTheme.colorScheme.onSurface
+                                            }
+                                        )
+                                        Text(
+                                            device.address,
+                                            style = MaterialTheme.typography.bodySmall,
+                                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                                        )
+                                        if (device.isPrinter) {
+                                            Text(
+                                                "Recommended Printer",
+                                                style = MaterialTheme.typography.bodySmall,
+                                                color = MaterialTheme.colorScheme.primary
+                                            )
+                                        }
+                                    }
+                                }
+                            }
+                            Spacer(modifier = Modifier.height(8.dp))
+                        }
+                    }
+                }
+            },
+            confirmButton = {
+                if (bluetoothPermissionGranted) {
+                    TextButton(
+                        onClick = { 
+                            bluetoothDevices = PrinterUtils.getPairedBluetoothDevices(context)
+                        }
+                    ) {
+                        Text("Refresh")
+                    }
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { showBluetoothPicker = false }) {
+                    Text("Cancel")
+                }
+            }
+        )
+    }
 }
