@@ -3,6 +3,10 @@ package com.example.pos.ui.screens
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.grid.GridCells
+import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Settings
@@ -10,17 +14,33 @@ import androidx.compose.material.icons.filled.ShoppingCart
 import androidx.compose.material.icons.automirrored.filled.List
 import androidx.compose.material.icons.filled.BarChart
 import androidx.compose.material.icons.filled.Receipt
+import androidx.compose.material.icons.filled.Store
+import androidx.compose.material.icons.filled.TrendingUp
+import androidx.compose.material.icons.filled.Payment
+import androidx.compose.material.icons.filled.Inventory
+import androidx.compose.material.icons.filled.Analytics
+import androidx.compose.material.icons.filled.ReceiptLong
+import androidx.compose.material.icons.filled.Speed
+import androidx.compose.material.icons.filled.Security
+import androidx.compose.material.icons.filled.CloudSync
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.pos.ui.components.PosTopBar
+import com.example.pos.ui.components.EnhancedCard
+import com.example.pos.ui.components.EnhancedButton
+import com.example.pos.ui.components.ButtonVariant
+import com.example.pos.ui.components.ButtonSize
+import com.example.pos.ui.components.StatusChip
+import com.example.pos.ui.components.ChipStatus
 import com.example.pos.ui.navigation.Screen
 import com.example.pos.ui.utils.*
 
@@ -41,128 +61,234 @@ fun MainScreen(
             )
         }
     ) { padding ->
-        Box(
+        LazyColumn(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(padding)
                 .background(
-                    MaterialTheme.colorScheme.background
+                    Brush.verticalGradient(
+                        colors = listOf(
+                            MaterialTheme.colorScheme.background,
+                            MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.3f)
+                        )
+                    )
                 ),
-            contentAlignment = Alignment.Center
+            contentPadding = PaddingValues(16.dp),
+            verticalArrangement = Arrangement.spacedBy(24.dp)
         ) {
-            Column(
-                horizontalAlignment = Alignment.CenterHorizontally,
-                verticalArrangement = Arrangement.spacedBy(getResponsiveSpacing())
-            ) {
-                // Welcome Section with Gradient Background
-                Card(
-                    modifier = Modifier.fillMaxWidth(),
-                    colors = CardDefaults.cardColors(
-                        containerColor = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.1f)
-                    ),
-                    elevation = CardDefaults.cardElevation(defaultElevation = 0.dp)
-                ) {
-                    Column(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(getResponsivePadding() * 2),
-                        horizontalAlignment = Alignment.CenterHorizontally
-                    ) {
-                        Text(
-                            text = "Welcome to POS System",
-                            style = MaterialTheme.typography.headlineMedium.copy(
-                                fontWeight = FontWeight.Bold,
-                                fontSize = if (isTablet()) 32.sp else 24.sp
-                            ),
-                            textAlign = TextAlign.Center,
-                            color = MaterialTheme.colorScheme.primary
-                        )
-                        
-                        Spacer(modifier = Modifier.height(8.dp))
-                        
-                        Text(
-                            text = "Choose an option to get started",
-                            style = MaterialTheme.typography.bodyLarge.copy(
-                                fontSize = if (isTablet()) 18.sp else 16.sp
-                            ),
-                            textAlign = TextAlign.Center,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant
-                        )
-                    }
-                }
-                
-                Spacer(modifier = Modifier.height(getResponsiveSpacing()))
-                
-                // Menu Grid
-                if (isTablet()) {
-                    // Tablet: 2x2 grid
-                    Column(
-                        verticalArrangement = Arrangement.spacedBy(getResponsiveSpacing())
-                    ) {
-                        Row(
-                            horizontalArrangement = Arrangement.spacedBy(getResponsiveSpacing())
-                        ) {
-                            MainMenuButton(
-                                text = "Inventory",
-                                icon = Icons.AutoMirrored.Filled.List,
-                                onClick = { onNavigate(Screen.Inventory.route) },
-                                modifier = Modifier.weight(1f)
-                            )
-                            MainMenuButton(
-                                text = "Billing",
-                                icon = Icons.Default.ShoppingCart,
-                                onClick = { onNavigate(Screen.Billing.route) },
-                                modifier = Modifier.weight(1f)
-                            )
-                        }
-                        Row(
-                            horizontalArrangement = Arrangement.spacedBy(getResponsiveSpacing())
-                        ) {
-                            MainMenuButton(
-                                text = "Dashboard",
-                                icon = Icons.Default.BarChart,
-                                onClick = { onNavigate(Screen.Dashboard.route) },
-                                modifier = Modifier.weight(1f)
-                            )
-                            MainMenuButton(
-                                text = "Transactions",
-                                icon = Icons.Default.Receipt,
-                                onClick = { onNavigate(Screen.Transactions.route) },
-                                modifier = Modifier.weight(1f)
-                            )
-                        }
-                    }
-                } else {
-                    // Mobile: Vertical list
-                    Column(
-                        verticalArrangement = Arrangement.spacedBy(getResponsiveSpacing())
-                    ) {
-                        MainMenuButton(
-                            text = "Inventory",
-                            icon = Icons.AutoMirrored.Filled.List,
-                            onClick = { onNavigate(Screen.Inventory.route) }
-                        )
-                        MainMenuButton(
-                            text = "Billing",
-                            icon = Icons.Default.ShoppingCart,
-                            onClick = { onNavigate(Screen.Billing.route) }
-                        )
-                        MainMenuButton(
-                            text = "Dashboard",
-                            icon = Icons.Default.BarChart,
-                            onClick = { onNavigate(Screen.Dashboard.route) }
-                        )
-                        MainMenuButton(
-                            text = "Transactions",
-                            icon = Icons.Default.Receipt,
-                            onClick = { onNavigate(Screen.Transactions.route) }
-                        )
-                    }
-                }
+            // Hero Section
+            item {
+                HeroSection()
+            }
+            
+            // Quick Actions Section
+            item {
+                QuickActionsSection(onNavigate = onNavigate)
             }
         }
     }
 }
+
+// Hero Section - Elegant Landing Header
+@Composable
+private fun HeroSection() {
+    EnhancedCard(
+        modifier = Modifier.fillMaxWidth(),
+        colors = CardDefaults.cardColors(
+            containerColor = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.1f)
+        )
+    ) {
+        Column(
+            horizontalAlignment = Alignment.CenterHorizontally,
+            modifier = Modifier.padding(32.dp)
+        ) {
+            // Main Icon with Gradient Background
+            Box(
+                modifier = Modifier
+                    .size(80.dp)
+                    .background(
+                        Brush.radialGradient(
+                            colors = listOf(
+                                MaterialTheme.colorScheme.primary.copy(alpha = 0.2f),
+                                MaterialTheme.colorScheme.primary.copy(alpha = 0.05f)
+                            )
+                        ),
+                        RoundedCornerShape(40.dp)
+                    ),
+                contentAlignment = Alignment.Center
+            ) {
+                Icon(
+                    imageVector = Icons.Filled.Store,
+                    contentDescription = null,
+                    modifier = Modifier.size(40.dp),
+                    tint = MaterialTheme.colorScheme.primary
+                )
+            }
+            
+            Spacer(modifier = Modifier.height(24.dp))
+            
+            Text(
+                text = "POS System",
+                style = MaterialTheme.typography.headlineLarge,
+                fontWeight = FontWeight.Bold,
+                textAlign = TextAlign.Center,
+                color = MaterialTheme.colorScheme.onSurface
+            )
+            
+            Spacer(modifier = Modifier.height(8.dp))
+            
+            
+        }
+    }
+}
+
+// Quick Actions Section - Main Navigation
+@Composable
+private fun QuickActionsSection(onNavigate: (String) -> Unit) {
+    Column(
+        verticalArrangement = Arrangement.spacedBy(16.dp)
+    ) {
+        Text(
+            text = "Quick Actions",
+            style = MaterialTheme.typography.headlineSmall,
+            fontWeight = FontWeight.Bold,
+            color = MaterialTheme.colorScheme.onSurface
+        )
+        
+        if (isTablet()) {
+            // Tablet: 2x2 grid
+            Column(
+                verticalArrangement = Arrangement.spacedBy(16.dp)
+            ) {
+                Row(
+                    horizontalArrangement = Arrangement.spacedBy(16.dp)
+                ) {
+                    ActionCard(
+                        title = "Inventory",
+                        subtitle = "Manage Products",
+                        icon = Icons.AutoMirrored.Filled.List,
+                        color = MaterialTheme.colorScheme.primary,
+                    onClick = { onNavigate(Screen.Inventory.route) },
+                    modifier = Modifier.weight(1f)
+                    )
+                    ActionCard(
+                        title = "Billing",
+                        subtitle = "Process Sales",
+                        icon = Icons.Default.ShoppingCart,
+                        color = MaterialTheme.colorScheme.secondary,
+                        onClick = { onNavigate(Screen.Billing.route) },
+                        modifier = Modifier.weight(1f)
+                    )
+                }
+                Row(
+                    horizontalArrangement = Arrangement.spacedBy(16.dp)
+                ) {
+                    ActionCard(
+                        title = "Dashboard",
+                        subtitle = "View Analytics",
+                        icon = Icons.Default.BarChart,
+                        color = MaterialTheme.colorScheme.tertiary,
+                        onClick = { onNavigate(Screen.Dashboard.route) },
+                        modifier = Modifier.weight(1f)
+                    )
+                    ActionCard(
+                        title = "Transactions",
+                        subtitle = "Sales History",
+                        icon = Icons.Default.ReceiptLong,
+                        color = MaterialTheme.colorScheme.primary,
+                        onClick = { onNavigate(Screen.Transactions.route) },
+                        modifier = Modifier.weight(1f)
+                    )
+                }
+            }
+        } else {
+            // Mobile: Vertical list
+            Column(
+                verticalArrangement = Arrangement.spacedBy(12.dp)
+            ) {
+                ActionCard(
+                    title = "Inventory",
+                    subtitle = "Manage Products",
+                    icon = Icons.AutoMirrored.Filled.List,
+                    color = MaterialTheme.colorScheme.primary,
+                    onClick = { onNavigate(Screen.Inventory.route) }
+                )
+                ActionCard(
+                    title = "Billing",
+                    subtitle = "Process Sales",
+                    icon = Icons.Default.ShoppingCart,
+                    color = MaterialTheme.colorScheme.secondary,
+                    onClick = { onNavigate(Screen.Billing.route) }
+                )
+                ActionCard(
+                    title = "Dashboard",
+                    subtitle = "View Analytics",
+                    icon = Icons.Default.BarChart,
+                    color = MaterialTheme.colorScheme.tertiary,
+                    onClick = { onNavigate(Screen.Dashboard.route) }
+                )
+                ActionCard(
+                    title = "Transactions",
+                    subtitle = "Sales History",
+                    icon = Icons.Default.ReceiptLong,
+                    color = MaterialTheme.colorScheme.primary,
+                    onClick = { onNavigate(Screen.Transactions.route) }
+                )
+            }
+        }
+    }
+}
+
+
+// Action Card Component
+@Composable
+private fun ActionCard(
+    title: String,
+    subtitle: String,
+    icon: ImageVector,
+    color: androidx.compose.ui.graphics.Color,
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier
+) {
+    EnhancedCard(
+        modifier = modifier,
+        onClick = onClick,
+        colors = CardDefaults.cardColors(
+            containerColor = color.copy(alpha = 0.1f)
+        )
+    ) {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(16.dp),
+            verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(16.dp)
+        ) {
+            Icon(
+                imageVector = icon,
+                contentDescription = null,
+                modifier = Modifier.size(32.dp),
+                tint = color
+            )
+            Column(
+                modifier = Modifier.weight(1f)
+            ) {
+                Text(
+                    text = title,
+                    style = MaterialTheme.typography.titleMedium,
+                    fontWeight = FontWeight.Bold,
+                    color = MaterialTheme.colorScheme.onSurface
+                )
+                Text(
+                    text = subtitle,
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+            }
+        }
+    }
+}
+
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -209,8 +335,8 @@ private fun MainMenuButton(
                 modifier = Modifier
                     .fillMaxSize()
                     .padding(getResponsivePadding()),
-                verticalArrangement = Arrangement.Center,
-                horizontalAlignment = Alignment.CenterHorizontally
+            verticalArrangement = Arrangement.Center,
+            horizontalAlignment = Alignment.CenterHorizontally
             ) {
                 // Icon with background circle
                 Box(
@@ -221,19 +347,19 @@ private fun MainMenuButton(
                             RoundedCornerShape(50)
                         ),
                     contentAlignment = Alignment.Center
-                ) {
-                    Icon(
-                        imageVector = icon,
-                        contentDescription = null,
+        ) {
+            Icon(
+                imageVector = icon,
+                contentDescription = null,
                         modifier = Modifier.size(getResponsiveIconSize()),
                         tint = MaterialTheme.colorScheme.primary
-                    )
+            )
                 }
                 
                 Spacer(modifier = Modifier.height(12.dp))
                 
-                Text(
-                    text = text,
+            Text(
+                text = text,
                     style = MaterialTheme.typography.titleMedium.copy(
                         fontWeight = FontWeight.Bold,
                         fontSize = if (isTablet()) 18.sp else 16.sp

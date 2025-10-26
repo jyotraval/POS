@@ -12,6 +12,7 @@ import androidx.compose.material.icons.filled.DateRange
 import androidx.compose.material.icons.filled.CalendarMonth
 import androidx.compose.material.icons.automirrored.filled.List
 import androidx.compose.material.icons.filled.FileDownload
+import androidx.compose.material.icons.filled.TrendingUp
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -23,6 +24,11 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.pos.data.dao.ItemDao
 import com.example.pos.data.dao.TransactionDao
 import com.example.pos.ui.components.PosTopBar
+import com.example.pos.ui.components.EnhancedCard
+import com.example.pos.ui.components.MetricCard
+import com.example.pos.ui.components.StatusChip
+import com.example.pos.ui.components.ChipStatus
+import com.example.pos.ui.components.TrendDirection
 import com.example.pos.ui.viewmodels.DashboardViewModel
 import kotlinx.coroutines.launch
 import java.text.NumberFormat
@@ -89,14 +95,18 @@ fun DashboardScreen(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.spacedBy(16.dp)
                 ) {
-                    SummaryCard(
+                    MetricCard(
                         title = "Total Sales",
                         value = formatPrice(totalSales),
+                        icon = Icons.Filled.TrendingUp,
+                        trend = TrendDirection.Up,
                         modifier = Modifier.weight(1f)
                     )
-                    SummaryCard(
+                    MetricCard(
                         title = "Average Daily Sales",
                         value = formatPrice(averageDailySales),
+                        icon = Icons.Filled.CalendarMonth,
+                        trend = TrendDirection.Neutral,
                         modifier = Modifier.weight(1f)
                     )
                 }

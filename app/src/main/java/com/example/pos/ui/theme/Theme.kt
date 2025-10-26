@@ -29,13 +29,13 @@ private val DarkColorScheme = darkColorScheme(
     onBackground = TextPrimaryDark,
     surface = SurfaceDark,
     onSurface = TextPrimaryDark,
-    surfaceVariant = Color(0xFF2C2C2C),
+    surfaceVariant = SurfaceVariantDark,
     onSurfaceVariant = TextSecondaryDark,
     error = ErrorRedLight,
     onError = Color.White,
     errorContainer = ErrorRed,
     onErrorContainer = Color.White,
-    outline = Color(0xFF666666),
+    outline = OutlineDark,
     outlineVariant = Color(0xFF444444),
     scrim = Color.Black.copy(alpha = 0.5f)
 )
@@ -57,13 +57,13 @@ private val LightColorScheme = lightColorScheme(
     onBackground = TextPrimaryLight,
     surface = SurfaceLight,
     onSurface = TextPrimaryLight,
-    surfaceVariant = Color(0xFFF5F5F5),
+    surfaceVariant = SurfaceVariantLight,
     onSurfaceVariant = TextSecondaryLight,
     error = ErrorRed,
     onError = Color.White,
     errorContainer = ErrorRedLight,
     onErrorContainer = ErrorRed,
-    outline = Color(0xFFE0E0E0),
+    outline = OutlineLight,
     outlineVariant = Color(0xFFF0F0F0),
     scrim = Color.Black.copy(alpha = 0.5f)
 )

@@ -37,6 +37,12 @@ import com.example.pos.data.dao.TransactionDao
 import com.example.pos.data.entity.Item
 import com.example.pos.data.model.CartItem
 import com.example.pos.ui.components.PosTopBar
+import com.example.pos.ui.components.EnhancedCard
+import com.example.pos.ui.components.EnhancedButton
+import com.example.pos.ui.components.ButtonVariant
+import com.example.pos.ui.components.ButtonSize
+import com.example.pos.ui.components.StatusChip
+import com.example.pos.ui.components.ChipStatus
 import com.example.pos.ui.theme.SelectedItemBorder
 import com.example.pos.ui.theme.CartHighlight
 import com.example.pos.ui.utils.*
@@ -159,25 +165,25 @@ fun BillingScreen(
                             )
                         )
                     }
+                    }
                 }
-            }
 
-            // Items Grid
-            LazyVerticalGrid(
+                // Items Grid
+                LazyVerticalGrid(
                 columns = GridCells.Fixed(getResponsiveGridColumns()),
                 contentPadding = PaddingValues(getResponsivePadding()),
                 horizontalArrangement = Arrangement.spacedBy(getResponsiveSpacing()),
                 verticalArrangement = Arrangement.spacedBy(getResponsiveSpacing()),
                 modifier = Modifier.weight(1f)
-            ) {
-                items(items) { item ->
-                    ItemTile(
-                        item = item,
-                        cartItem = cart[item.id],
-                        onAdd = { viewModel.addToCart(item) },
-                        onRemove = { viewModel.removeFromCart(item.id) },
-                        onUpdateQuantity = { qty -> viewModel.updateQuantity(item.id, qty) }
-                    )
+                ) {
+                    items(items) { item ->
+                        ItemTile(
+                            item = item,
+                            cartItem = cart[item.id],
+                            onAdd = { viewModel.addToCart(item) },
+                            onRemove = { viewModel.removeFromCart(item.id) },
+                            onUpdateQuantity = { qty -> viewModel.updateQuantity(item.id, qty) }
+                        )
                 }
             }
 
@@ -275,7 +281,7 @@ private fun ItemTile(
 ) {
     var showQuantityDialog by remember { mutableStateOf(false) }
     
-    Card(
+    EnhancedCard(
         onClick = { 
             if (cartItem == null) {
                 onAdd()
@@ -284,93 +290,125 @@ private fun ItemTile(
             }
         },
         modifier = Modifier
-            .aspectRatio(1f)
-            .clip(RoundedCornerShape(16.dp)),
-        border = if (cartItem != null) {
-            BorderStroke(3.dp, MaterialTheme.colorScheme.primary)
-        } else {
-            BorderStroke(1.dp, MaterialTheme.colorScheme.outline.copy(alpha = 0.3f))
-        },
+            .aspectRatio(0.85f)
+            .fillMaxWidth(),
         colors = CardDefaults.cardColors(
             containerColor = if (cartItem != null) {
-                MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.2f)
+                MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.15f)
             } else {
                 MaterialTheme.colorScheme.surface
             }
-        ),
-        elevation = CardDefaults.cardElevation(
-            defaultElevation = if (cartItem != null) 8.dp else 4.dp,
-            pressedElevation = if (cartItem != null) 12.dp else 8.dp
         )
     ) {
-        Box(
-            modifier = Modifier.fillMaxSize(),
-            contentAlignment = Alignment.Center
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(12.dp),
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.SpaceBetween
         ) {
-            Column(
-                modifier = Modifier
-                    .padding(getResponsivePadding())
-                    .fillMaxWidth(),
-                horizontalAlignment = Alignment.CenterHorizontally
+            // Item Name
+            Text(
+                text = item.name,
+                style = MaterialTheme.typography.titleMedium,
+                fontWeight = FontWeight.SemiBold,
+                textAlign = TextAlign.Center,
+                color = MaterialTheme.colorScheme.onSurface,
+                maxLines = 2,
+                modifier = Modifier.fillMaxWidth()
+            )
+            
+            // Price
+            Surface(
+                shape = RoundedCornerShape(8.dp),
+                color = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.3f)
             ) {
                 Text(
-                    text = item.name,
-                    style = MaterialTheme.typography.titleMedium.copy(
-                        fontWeight = FontWeight.Bold,
-                        fontSize = if (isTablet()) 16.sp else 14.sp
-                    ),
-                    textAlign = TextAlign.Center,
-                    color = if (cartItem != null) {
-                        MaterialTheme.colorScheme.primary
-                    } else {
-                        MaterialTheme.colorScheme.onSurface
-                    }
-                )
-                Spacer(modifier = Modifier.height(4.dp))
-                Text(
                     text = formatPrice(item.price),
-                    style = MaterialTheme.typography.bodyMedium.copy(
-                        fontSize = if (isTablet()) 14.sp else 12.sp
-                    ),
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                    style = MaterialTheme.typography.bodyLarge,
+                    fontWeight = FontWeight.Bold,
+                    color = MaterialTheme.colorScheme.primary,
+                    modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp)
                 )
-                if (cartItem != null) {
-                    Spacer(modifier = Modifier.height(8.dp))
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.SpaceEvenly,
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        IconButton(
-                            onClick = { onUpdateQuantity(cartItem.quantity - 1) },
-                            modifier = Modifier.size(if (isTablet()) 32.dp else 28.dp)
-                        ) {
-                            Icon(
-                                Icons.Filled.Close, 
-                                "Decrease",
-                                tint = MaterialTheme.colorScheme.error
+            }
+            
+            // Quantity Controls or Add Button
+            if (cartItem != null) {
+                // Controls Row
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceEvenly,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    IconButton(
+                        onClick = { onUpdateQuantity(cartItem.quantity - 1) },
+                        modifier = Modifier
+                            .size(36.dp)
+                            .background(
+                                MaterialTheme.colorScheme.errorContainer,
+                                RoundedCornerShape(8.dp)
                             )
-                        }
+                    ) {
+                        Icon(
+                            Icons.Filled.Close, 
+                            "Decrease",
+                            tint = MaterialTheme.colorScheme.error,
+                            modifier = Modifier.size(20.dp)
+                        )
+                    }
+                    
+                    Surface(
+                        shape = RoundedCornerShape(8.dp),
+                        color = MaterialTheme.colorScheme.secondaryContainer,
+                        modifier = Modifier.clickable { showQuantityDialog = true }
+                    ) {
                         Text(
                             text = cartItem.quantity.toString(),
-                            style = MaterialTheme.typography.titleLarge.copy(
-                                fontWeight = FontWeight.Bold,
-                                fontSize = if (isTablet()) 18.sp else 16.sp
-                            ),
-                            color = MaterialTheme.colorScheme.primary,
-                            modifier = Modifier.clickable { showQuantityDialog = true }
+                            style = MaterialTheme.typography.headlineSmall,
+                            fontWeight = FontWeight.Bold,
+                            color = MaterialTheme.colorScheme.onSecondaryContainer,
+                            modifier = Modifier.padding(horizontal = 16.dp, vertical = 8.dp)
                         )
-                        IconButton(
-                            onClick = { onUpdateQuantity(cartItem.quantity + 1) },
-                            modifier = Modifier.size(if (isTablet()) 32.dp else 28.dp)
-                        ) {
-                            Icon(
-                                Icons.Default.Add, 
-                                "Increase",
-                                tint = MaterialTheme.colorScheme.primary
-                            )
-                        }
                     }
+                    
+                    IconButton(
+                        onClick = { onUpdateQuantity(cartItem.quantity + 1) },
+                        modifier = Modifier
+                            .size(36.dp)
+                            .background(
+                                MaterialTheme.colorScheme.primaryContainer,
+                                RoundedCornerShape(8.dp)
+                            )
+                    ) {
+                        Icon(
+                            Icons.Default.Add, 
+                            "Add More",
+                            tint = MaterialTheme.colorScheme.primary,
+                            modifier = Modifier.size(20.dp)
+                        )
+                    }
+                }
+            } else {
+                // Add to Cart Button
+                Button(
+                    onClick = onAdd,
+                    modifier = Modifier.fillMaxWidth(),
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = MaterialTheme.colorScheme.primary
+                    ),
+                    shape = RoundedCornerShape(8.dp)
+                ) {
+                    Icon(
+                        Icons.Default.Add,
+                        contentDescription = null,
+                        modifier = Modifier.size(18.dp)
+                    )
+                    Spacer(modifier = Modifier.width(8.dp))
+                    Text(
+                        "Add to Cart",
+                        style = MaterialTheme.typography.labelLarge,
+                        fontWeight = FontWeight.Bold
+                    )
                 }
             }
         }
@@ -852,36 +890,20 @@ private fun BottomActionBar(
                             fontWeight = FontWeight.Bold
                         )
                     }
-                    Button(
+                    EnhancedButton(
                         onClick = onShowClearCartDialog,
-                        colors = ButtonDefaults.buttonColors(
-                            containerColor = MaterialTheme.colorScheme.error
-                        ),
-                        elevation = ButtonDefaults.buttonElevation(
-                            defaultElevation = 4.dp,
-                            pressedElevation = 8.dp
-                        )
+                        variant = ButtonVariant.Danger,
+                        size = ButtonSize.Large
                     ) {
-                        Text(
-                            "Clear",
-                            fontWeight = FontWeight.Bold
-                        )
+                        Text("Clear")
                     }
-                    Button(
+                    EnhancedButton(
                         onClick = onShowBillPreview,
                         enabled = cart.isNotEmpty(),
-                        colors = ButtonDefaults.buttonColors(
-                            containerColor = CartHighlight
-                        ),
-                        elevation = ButtonDefaults.buttonElevation(
-                            defaultElevation = 6.dp,
-                            pressedElevation = 10.dp
-                        )
+                        variant = ButtonVariant.Success,
+                        size = ButtonSize.Large
                     ) {
-                        Text(
-                            "Bill",
-                            fontWeight = FontWeight.Bold
-                        )
+                        Text("Bill")
                     }
                 }
             }

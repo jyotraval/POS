@@ -23,6 +23,13 @@ import com.example.pos.util.PrinterUtils
 import com.example.pos.data.dao.SettingsDao
 import com.example.pos.data.entity.Settings
 import com.example.pos.ui.components.PosTopBar
+import com.example.pos.ui.components.EnhancedCard
+import com.example.pos.ui.components.EnhancedButton
+import com.example.pos.ui.components.ButtonVariant
+import com.example.pos.ui.components.ButtonSize
+import com.example.pos.ui.components.EnhancedTextField
+import com.example.pos.ui.components.StatusChip
+import com.example.pos.ui.components.ChipStatus
 import kotlinx.coroutines.launch
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
@@ -419,7 +426,7 @@ fun SettingsScreen(
                             modifier = Modifier.clickable {
                                 tapCount++
                                 if (tapCount == 5) {
-                                    Toast.makeText(context, "v0.9.0 (beta)", Toast.LENGTH_SHORT).show()
+                                    Toast.makeText(context, "v1.0.0 (_stable_)", Toast.LENGTH_SHORT).show()
                                     tapCount = 0
                                 }
                             }
