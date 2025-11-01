@@ -17,7 +17,7 @@ import com.example.pos.util.Converters
         TransactionItem::class,
         Settings::class
     ],
-    version = 1,
+    version = 2,
     exportSchema = true
 )
 @TypeConverters(Converters::class)

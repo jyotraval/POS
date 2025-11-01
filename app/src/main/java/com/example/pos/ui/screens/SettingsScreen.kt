@@ -55,6 +55,7 @@ fun SettingsScreen(
     var paddingTop by remember { mutableStateOf(settings?.paddingTop?.toString() ?: "0") }
     var paddingBottom by remember { mutableStateOf(settings?.paddingBottom?.toString() ?: "0") }
     var printerWidth by remember { mutableStateOf(settings?.printerWidth?.toString() ?: "32") }
+    var linesBeforeCut by remember { mutableStateOf(settings?.linesBeforeCut?.toString() ?: "3") }
     
     var showResetDialog by remember { mutableStateOf(false) }
     var showSaveSuccess by remember { mutableStateOf(false) }
@@ -81,6 +82,7 @@ fun SettingsScreen(
             paddingTop = settings?.paddingTop?.toString() ?: "0"
             paddingBottom = settings?.paddingBottom?.toString() ?: "0"
             printerWidth = settings?.printerWidth?.toString() ?: "32"
+            linesBeforeCut = settings?.linesBeforeCut?.toString() ?: "3"
         }
     }
 
@@ -142,7 +144,8 @@ fun SettingsScreen(
                                         printerMac = printerMac,
                                         paddingTop = paddingTop.toIntOrNull() ?: 0,
                                         paddingBottom = paddingBottom.toIntOrNull() ?: 0,
-                                        printerWidth = printerWidth.toIntOrNull() ?: 32
+                                        printerWidth = printerWidth.toIntOrNull() ?: 32,
+                                        linesBeforeCut = linesBeforeCut.toIntOrNull() ?: 3
                                     )
                                 )
                                 showSaveSuccess = true
@@ -359,6 +362,12 @@ fun SettingsScreen(
                         label = { Text("Printer Width") },
                         modifier = Modifier.fillMaxWidth()
                     )
+                    OutlinedTextField(
+                        value = linesBeforeCut,
+                        onValueChange = { linesBeforeCut = it },
+                        label = { Text("Lines Before Cut") },
+                        modifier = Modifier.fillMaxWidth()
+                    )
                     Button(
                         onClick = {
                             scope.launch {
@@ -371,7 +380,8 @@ fun SettingsScreen(
                                         printerMac = printerMac,
                                         paddingTop = paddingTop.toIntOrNull() ?: 0,
                                         paddingBottom = paddingBottom.toIntOrNull() ?: 0,
-                                        printerWidth = printerWidth.toIntOrNull() ?: 32
+                                        printerWidth = printerWidth.toIntOrNull() ?: 32,
+                                        linesBeforeCut = linesBeforeCut.toIntOrNull() ?: 3
                                     )
                                     
                                     val success = com.example.pos.util.PrinterUtils.testPrint(
@@ -381,7 +391,9 @@ fun SettingsScreen(
                                         address = settings.address,
                                         phone = settings.phone,
                                         paddingTop = settings.paddingTop,
-                                        paddingBottom = settings.paddingBottom
+                                        paddingBottom = settings.paddingBottom,
+                                        linesBeforeCut = settings.linesBeforeCut,
+                                        printerWidth = settings.printerWidth
                                     )
                                     
                                     if (success) {

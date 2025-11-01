@@ -154,7 +154,9 @@ class TransactionViewModel(
                     discount = transaction.discount,
                     total = transaction.total,
                     paddingTop = settings.paddingTop,
-                    paddingBottom = settings.paddingBottom
+                    paddingBottom = settings.paddingBottom,
+                    linesBeforeCut = settings.linesBeforeCut,
+                    printerWidth = settings.printerWidth
                 )
 
                 if (success) {

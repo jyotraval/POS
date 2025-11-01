@@ -14,5 +14,6 @@ data class Settings(
     val printerMac: String?,
     val paddingTop: Int,
     val paddingBottom: Int,
-    val printerWidth: Int
+    val printerWidth: Int,
+    val linesBeforeCut: Int
 )

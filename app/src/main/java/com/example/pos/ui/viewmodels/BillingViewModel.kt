@@ -168,6 +168,12 @@ class BillingViewModel(
     fun printReceipt() {
         viewModelScope.launch {
             try {
+                // Validate cart is not empty
+                if (cart.value.isEmpty()) {
+                    _uiState.value = BillingUiState.Error("Cart is empty. Add items before printing.")
+                    return@launch
+                }
+                
                 val settings = settingsDao.getSettings().first()
                 if (settings == null) {
                     _uiState.value = BillingUiState.Error("Printer not configured")
@@ -241,7 +247,9 @@ class BillingViewModel(
                     discount = totalDiscount.value,
                     total = total.value,
                     paddingTop = settings.paddingTop,
-                    paddingBottom = settings.paddingBottom
+                    paddingBottom = settings.paddingBottom,
+                    linesBeforeCut = settings.linesBeforeCut,
+                    printerWidth = settings.printerWidth
                 )
 
                 if (success) {
@@ -259,6 +267,12 @@ class BillingViewModel(
     fun saveTransactionOnly() {
         viewModelScope.launch {
             try {
+                // Validate cart is not empty
+                if (cart.value.isEmpty()) {
+                    _uiState.value = BillingUiState.Error("Cart is empty. Add items before saving.")
+                    return@launch
+                }
+                
                 val settings = settingsDao.getSettings().first()
                 if (settings == null) {
                     _uiState.value = BillingUiState.Error("Please configure settings first")

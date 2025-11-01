@@ -18,7 +18,12 @@ object PrinterUtils {
     private const val DEFAULT_PRINTER_CHARS_PER_LINE = 32
     
     // DEBUG MODE - Set to true when you don't have a printer
+    // When false, will send signals to printer normally
     private const val DEBUG_MODE = false
+    
+    // VERBOSE_LOGGING - Set to true for detailed receipt logging
+    // When false, only errors and warnings are logged
+    private const val VERBOSE_LOGGING = false
 
     private fun hasBluetoothPermissions(context: Context): Boolean {
         return ContextCompat.checkSelfPermission(
@@ -153,22 +158,34 @@ object PrinterUtils {
         address: String,
         phone: String,
         paddingTop: Int,
-        paddingBottom: Int
+        paddingBottom: Int,
+        linesBeforeCut: Int,
+        printerWidth: Int
     ): Boolean {
         try {
             android.util.Log.d("PrinterUtils", "Starting test print with MAC: $macAddress")
             
+            val testText = getTestReceiptText(
+                stallName,
+                address,
+                phone,
+                paddingTop,
+                paddingBottom,
+                linesBeforeCut,
+                printerWidth
+            )
+            
+            // Log receipt content if verbose logging is enabled
+            if (VERBOSE_LOGGING) {
+                android.util.Log.d("PrinterUtils", "========== TEST RECEIPT CONTENT ==========")
+                logReceiptContent("TEST_RECEIPT", testText)
+                android.util.Log.d("PrinterUtils", "==========================================")
+            } else {
+                android.util.Log.d("PrinterUtils", "Test print requested")
+            }
+            
             if (DEBUG_MODE) {
-                android.util.Log.d("PrinterUtils", "🔧 DEBUG MODE: Simulating test print")
-                val testText = getTestReceiptText(
-                    stallName,
-                    address,
-                    phone,
-                    paddingTop,
-                    paddingBottom
-                )
-                android.util.Log.d("PrinterUtils", "📄 DEBUG - Test Receipt Content:")
-                android.util.Log.d("PrinterUtils", testText)
+                android.util.Log.d("PrinterUtils", "🔧 DEBUG MODE: Skipping actual printer connection")
                 android.util.Log.d("PrinterUtils", "✅ DEBUG MODE: Test print completed successfully")
                 return true
             }
@@ -185,16 +202,13 @@ object PrinterUtils {
                 return false
             }
 
-            val testText = getTestReceiptText(
-                stallName,
-                address,
-                phone,
-                paddingTop,
-                paddingBottom
-            )
-
-            android.util.Log.d("PrinterUtils", "Printing test text: $testText")
-            printer.printFormattedText(testText)
+            android.util.Log.d("PrinterUtils", "Connecting to printer and printing test receipt...")
+            try {
+                printer.printFormattedTextAndCut(testText, linesBeforeCut)
+            } catch (_: Throwable) {
+                // Fallback if method not available
+                printer.printFormattedText(testText)
+            }
             printer.disconnectPrinter()
             
             android.util.Log.d("PrinterUtils", "Test print completed successfully")
@@ -276,18 +290,22 @@ object PrinterUtils {
         address: String,
         phone: String,
         paddingTop: Int,
-        paddingBottom: Int
+        paddingBottom: Int,
+        linesBeforeCut: Int,
+        printerWidth: Int
     ): String {
         val date = SimpleDateFormat("dd-MM-yyyy HH:mm", Locale.getDefault()).format(Date())
         
         return "[C]<b>$stallName</b>\n" +
             "[C]$address\n" +
             "[C]$phone\n" +
-            "[C]--------------------------------\n" +
+            "[C]${"-".repeat(printerWidth)}\n" +
             "[L]Date: $date\n" +
             "[C]*** TEST PRINT ***\n" +
-            "[C]--------------------------------\n" +
+            "[C]${"-".repeat(printerWidth)}\n" +
             "[L]Printer connection successful!\n" +
+            "[L]\n".repeat(linesBeforeCut) +
+            "[C]Thank You!\n" +
             "[L]\n".repeat(paddingBottom)
     }
 
@@ -305,29 +323,47 @@ object PrinterUtils {
         discount: Double,
         total: Double,
         paddingTop: Int,
-        paddingBottom: Int
+        paddingBottom: Int,
+        linesBeforeCut: Int,
+        printerWidth: Int
     ): Boolean {
         try {
+            // Validate items list is not empty
+            if (items.isEmpty()) {
+                android.util.Log.e("PrinterUtils", "Cannot print receipt: items list is empty")
+                return false
+            }
+            
             android.util.Log.d("PrinterUtils", "Starting receipt print with MAC: $macAddress")
             
+            val receiptText = getReceiptText(
+                stallName,
+                address,
+                phone,
+                txnId,
+                buyerName,
+                buyerPhone,
+                items,
+                subtotal,
+                discount,
+                total,
+                paddingTop,
+                paddingBottom,
+                linesBeforeCut,
+                printerWidth
+            )
+            
+            // Log receipt content if verbose logging is enabled
+            if (VERBOSE_LOGGING) {
+                android.util.Log.d("PrinterUtils", "========== RECEIPT CONTENT ==========")
+                logReceiptContent("RECEIPT", receiptText)
+                android.util.Log.d("PrinterUtils", "=====================================")
+            } else {
+                android.util.Log.i("PrinterUtils", "Printing receipt: $txnId")
+            }
+            
             if (DEBUG_MODE) {
-                android.util.Log.d("PrinterUtils", "🔧 DEBUG MODE: Simulating receipt print")
-                val receiptText = getReceiptText(
-                    stallName,
-                    address,
-                    phone,
-                    txnId,
-                    buyerName,
-                    buyerPhone,
-                    items,
-                    subtotal,
-                    discount,
-                    total,
-                    paddingTop,
-                    paddingBottom
-                )
-                android.util.Log.d("PrinterUtils", "🧾 DEBUG - Receipt Content:")
-                android.util.Log.d("PrinterUtils", receiptText)
+                android.util.Log.d("PrinterUtils", "🔧 DEBUG MODE: Skipping actual printer connection")
                 android.util.Log.d("PrinterUtils", "✅ DEBUG MODE: Receipt print completed successfully")
                 return true
             }
@@ -344,23 +380,13 @@ object PrinterUtils {
                 return false
             }
             
-            val receiptText = getReceiptText(
-                stallName,
-                address,
-                phone,
-                txnId,
-                buyerName,
-                buyerPhone,
-                items,
-                subtotal,
-                discount,
-                total,
-                paddingTop,
-                paddingBottom
-            )
-
-            android.util.Log.d("PrinterUtils", "Printing receipt: $receiptText")
-            printer.printFormattedText(receiptText)
+            android.util.Log.d("PrinterUtils", "Connecting to printer and printing receipt...")
+            try {
+                printer.printFormattedTextAndCut(receiptText, linesBeforeCut)
+            } catch (_: Throwable) {
+                // Fallback if method not available
+                printer.printFormattedText(receiptText)
+            }
             printer.disconnectPrinter()
             
             android.util.Log.d("PrinterUtils", "Receipt print completed successfully")
@@ -391,7 +417,9 @@ object PrinterUtils {
         discount: Double,
         total: Double,
         paddingTop: Int,
-        paddingBottom: Int
+        paddingBottom: Int,
+        linesBeforeCut: Int,
+        printerWidth: Int
     ): String {
         val date = SimpleDateFormat("dd-MM-yyyy HH:mm", Locale.getDefault()).format(Date())
         val sb = StringBuilder()
@@ -401,7 +429,7 @@ object PrinterUtils {
         sb.append("[C]<b>$stallName</b>\n")
         sb.append("[C]$address\n")
         sb.append("[C]$phone\n")
-        sb.append("[C]--------------------------------\n")
+        sb.append("[C]${"-".repeat(printerWidth)}\n")
         
         // Transaction info
         sb.append("[L]Date: $date\n")
@@ -412,31 +440,78 @@ object PrinterUtils {
         if (!buyerPhone.isNullOrBlank()) {
             sb.append("[L]Phone: $buyerPhone\n")
         }
-        sb.append("[C]--------------------------------\n")
+        sb.append("[C]${"-".repeat(printerWidth)}\n")
         
-        // Items
-        sb.append("[L]<b>Item      Qty  Price  Total</b>\n")
+        // Items header
+        // Calculate space for header based on printer width
+        val reservedSpace = 20  // Same as item formatting
+        val availableForHeader = printerWidth - reservedSpace
+        val headerItemText = "Item".padEnd(availableForHeader)
+        sb.append("[L]<b>$headerItemText Qty  Price   Total</b>\n")
         items.forEach { item ->
-            val name = item.name.take(8).padEnd(8)
             val qty = item.quantity.toString().padStart(3)
             val price = String.format("%.1f", item.unitPrice).padStart(6)
             val total = String.format("%.1f", item.total).padStart(6)
-            sb.append("[L]$name  $qty  $price  $total\n")
+            
+            // Calculate space needed for quantity, price, total columns
+            // Format: "  Qty  Price  Total" = 3 + 2 + 6 + 2 + 6 = 19 chars
+            val reservedSpace = 20
+            val availableForName = printerWidth - reservedSpace
+            
+            // If item name fits on same line, put it there
+            // Otherwise, put item name on its own line
+            if (item.name.length <= availableForName) {
+                // Item name fits - format: "Name        Qty  Price  Total"
+                val paddedName = item.name.padEnd(availableForName)
+                sb.append("[L]$paddedName$qty  $price $total\n")
+            } else {
+                // Item name is too long - put on separate line
+                sb.append("[L]${item.name}\n")
+                // Then put qty, price, total aligned to the right
+                val spacing = " ".repeat(availableForName)
+                sb.append("[L]$spacing $qty $price $total\n")
+            }
         }
         
         // Totals
-        sb.append("[C]--------------------------------\n")
+        sb.append("[C]${"-".repeat(printerWidth)}\n")
         sb.append("[R]Subtotal: ${String.format("%.2f", subtotal)}\n")
         if (discount > 0) {
             sb.append("[R]Discount: -${String.format("%.2f", discount)}\n")
         }
+        sb.append("[C]${"-".repeat(printerWidth)}\n")
         sb.append("[R]<b>Total: ${String.format("%.2f", total)}</b>\n")
         
+        // Lines before cut
+        sb.append("[L]\n".repeat(linesBeforeCut))
+        
         // Footer
-        sb.append("[C]--------------------------------\n")
         sb.append("[C]Thank You!\n")
         sb.append("[L]\n".repeat(paddingBottom))
+        
+        // Cut command
+//        sb.append("[D]<cut>")
 
         return sb.toString()
+    }
+    
+    /**
+     * Helper function to log receipt content to logcat in a readable format
+     */
+    private fun logReceiptContent(tag: String, receiptText: String) {
+        val lines = receiptText.split("\n")
+        android.util.Log.d("PrinterUtils", "[$tag] Total lines: ${lines.size}")
+        android.util.Log.d("PrinterUtils", "[$tag] ==========================================")
+        
+        lines.forEachIndexed { index, line ->
+            // Log each line with its number for easier reading
+            // Android logcat has a limit, so we'll log in chunks if needed
+            val lineNumber = String.format("%03d", index + 1)
+            android.util.Log.d("PrinterUtils", "[$tag] $lineNumber | $line")
+        }
+        
+        android.util.Log.d("PrinterUtils", "[$tag] ==========================================")
+        android.util.Log.d("PrinterUtils", "[$tag] Full receipt text (raw):")
+        android.util.Log.d("PrinterUtils", "[$tag] $receiptText")
     }
 }

@@ -1,3 +1,6 @@
+.\gradlew assembleDebug
+
+
 Here's a clean **Product Requirements Document (PRD)** for your **custom Food Stall POS app**. It's structured and formatted professionally, ready to be shared with developers, designers, or stakeholders.
 
 
