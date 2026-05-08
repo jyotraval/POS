@@ -4,12 +4,15 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
+import androidx.compose.material3.MenuAnchorType
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
@@ -17,7 +20,10 @@ import com.example.pos.data.dao.CategoryDao
 import com.example.pos.data.dao.ItemDao
 import com.example.pos.data.entity.Category
 import com.example.pos.data.entity.Item
+import com.example.pos.ui.components.EnhancedCard
 import com.example.pos.ui.components.PosTopBar
+import com.example.pos.ui.utils.getResponsivePadding
+import com.example.pos.ui.utils.getResponsiveSpacing
 import com.example.pos.ui.viewmodels.CategoryViewModel
 import com.example.pos.ui.viewmodels.ItemViewModel
 import kotlinx.coroutines.launch
@@ -96,8 +102,8 @@ fun ItemListScreen(
         ) {
             // Category filter
             LazyRow(
-                contentPadding = PaddingValues(16.dp),
-                horizontalArrangement = Arrangement.spacedBy(8.dp)
+                contentPadding = PaddingValues(getResponsivePadding()),
+                horizontalArrangement = Arrangement.spacedBy(getResponsiveSpacing())
             ) {
                 item {
                     FilterChip(
@@ -120,7 +126,7 @@ fun ItemListScreen(
                 Box(
                     modifier = Modifier
                         .fillMaxSize()
-                        .padding(16.dp),
+                        .padding(getResponsivePadding()),
                     contentAlignment = Alignment.Center
                 ) {
                     Text(
@@ -131,8 +137,8 @@ fun ItemListScreen(
                 }
             } else {
                 LazyColumn(
-                    contentPadding = PaddingValues(16.dp),
-                    verticalArrangement = Arrangement.spacedBy(8.dp)
+                    contentPadding = PaddingValues(getResponsivePadding()),
+                    verticalArrangement = Arrangement.spacedBy(getResponsiveSpacing())
                 ) {
                     items(items) { item ->
                         ItemCard(
@@ -214,19 +220,18 @@ fun ItemListScreen(
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun ItemCard(
+    modifier: Modifier = Modifier,
     item: Item,
     category: Category?,
     onEdit: (Item) -> Unit,
     onDelete: (Item) -> Unit
 ) {
-    Card(
-        modifier = Modifier.fillMaxWidth(),
+    EnhancedCard(
+        modifier = modifier.fillMaxWidth(),
         onClick = { onEdit(item) }
     ) {
         Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(16.dp),
+            modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.SpaceBetween,
             verticalAlignment = Alignment.CenterVertically
         ) {
@@ -251,7 +256,11 @@ private fun ItemCard(
                     style = MaterialTheme.typography.titleMedium
                 )
                 IconButton(onClick = { onDelete(item) }) {
-                    Icon(Icons.Default.Delete, "Delete")
+                    Icon(
+                        Icons.Default.Delete,
+                        "Delete",
+                        tint = MaterialTheme.colorScheme.error
+                    )
                 }
             }
         }
@@ -308,7 +317,8 @@ private fun ItemDialog(
                     supportingText = if (priceError) {
                         { Text("Enter a valid price") }
                     } else null,
-                    modifier = Modifier.fillMaxWidth()
+                    modifier = Modifier.fillMaxWidth(),
+                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number)
                 )
 
                 var expanded by remember { mutableStateOf(false) }
@@ -321,7 +331,9 @@ private fun ItemDialog(
                         onValueChange = {},
                         readOnly = true,
                         label = { Text("Category") },
-                        modifier = Modifier.menuAnchor().fillMaxWidth(),
+                        modifier = Modifier
+                            .menuAnchor(MenuAnchorType.PrimaryNotEditable, enabled = true)
+                            .fillMaxWidth(),
                         trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = expanded) },
                     )
 

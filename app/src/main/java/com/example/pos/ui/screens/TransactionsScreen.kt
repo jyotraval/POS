@@ -7,12 +7,10 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.DateRange
 import androidx.compose.material.icons.filled.Search
-import androidx.compose.material.icons.filled.Print
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.pos.data.dao.ItemDao
@@ -20,9 +18,11 @@ import com.example.pos.data.dao.SettingsDao
 import com.example.pos.data.dao.TransactionDao
 import com.example.pos.data.entity.Transaction
 import com.example.pos.data.entity.TransactionItem
+import com.example.pos.ui.components.EnhancedCard
 import com.example.pos.ui.components.PosTopBar
+import com.example.pos.ui.utils.getResponsivePadding
+import com.example.pos.ui.utils.getResponsiveSpacing
 import com.example.pos.ui.viewmodels.TransactionViewModel
-import com.example.pos.util.PrinterUtils
 import kotlinx.coroutines.launch
 import java.text.NumberFormat
 import java.text.SimpleDateFormat
@@ -77,89 +77,94 @@ fun TransactionsScreen(
 
     Scaffold(
         topBar = {
-            Column {
-                PosTopBar(
-                    title = "Transactions",
-                    onBackClick = onNavigateBack,
-                    actions = {
-                        IconButton(onClick = { showDatePicker = true }) {
-                            Icon(Icons.Default.DateRange, "Select Date Range")
-                        }
+            PosTopBar(
+                title = "Transactions",
+                onBackClick = onNavigateBack,
+                actions = {
+                    IconButton(onClick = { showDatePicker = true }) {
+                        Icon(Icons.Default.DateRange, "Select Date Range")
                     }
-                )
-                
+                }
+            )
+        },
+        snackbarHost = { SnackbarHost(snackbarHostState) }
+    ) { padding ->
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(padding)
+        ) {
+            Surface(
+                tonalElevation = 1.dp
+            ) {
                 OutlinedTextField(
                     value = searchQuery,
                     onValueChange = { viewModel.setSearchQuery(it) },
-                    placeholder = { Text("Search by TXN ID, buyer name, or phone") },
+                    placeholder = { Text("Search by transaction ID, buyer name, or phone") },
                     leadingIcon = {
                         Icon(Icons.Default.Search, "Search")
                     },
                     modifier = Modifier
                         .fillMaxWidth()
-                        .padding(horizontal = 16.dp),
+                        .padding(getResponsivePadding()),
                     singleLine = true
                 )
             }
-        },
-        snackbarHost = { SnackbarHost(snackbarHostState) }
-    ) { padding ->
-        if (transactions.isEmpty()) {
-            Box(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .padding(padding),
-                contentAlignment = Alignment.Center
-            ) {
-                Text(
-                    text = "No transactions found",
-                    style = MaterialTheme.typography.bodyLarge
-                )
-            }
-        } else {
-            LazyColumn(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .padding(padding),
-                contentPadding = PaddingValues(16.dp),
-                verticalArrangement = Arrangement.spacedBy(8.dp)
-            ) {
-                val dateFormat = SimpleDateFormat("dd MMM yyyy", Locale.getDefault())
-                val calendar = Calendar.getInstance()
-                
-                // Group transactions by day
-                val groupedTransactions = transactions.groupBy { transaction ->
-                    Calendar.getInstance().apply {
-                        time = transaction.dateTime
-                        set(Calendar.HOUR_OF_DAY, 0)
-                        set(Calendar.MINUTE, 0)
-                        set(Calendar.SECOND, 0)
-                        set(Calendar.MILLISECOND, 0)
-                    }.time
+
+            if (transactions.isEmpty()) {
+                Box(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .padding(getResponsivePadding()),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Text(
+                        text = "No transactions found",
+                        style = MaterialTheme.typography.bodyLarge
+                    )
                 }
-                
-                // Sort groups by date in descending order
-                groupedTransactions.toSortedMap(compareByDescending { it })
-                    .forEach { (date, dayTransactions) ->
-                        item {
-                            Text(
-                                text = dateFormat.format(date),
-                                style = MaterialTheme.typography.titleMedium,
-                                modifier = Modifier.padding(vertical = 8.dp)
-                            )
+            } else {
+                LazyColumn(
+                    modifier = Modifier.fillMaxSize(),
+                    contentPadding = PaddingValues(getResponsivePadding()),
+                    verticalArrangement = Arrangement.spacedBy(getResponsiveSpacing())
+                ) {
+                    val dateFormat = SimpleDateFormat("dd MMM yyyy", Locale.getDefault())
+
+                    // Group transactions by day
+                    val groupedTransactions = transactions.groupBy { transaction ->
+                        Calendar.getInstance().apply {
+                            time = transaction.dateTime
+                            set(Calendar.HOUR_OF_DAY, 0)
+                            set(Calendar.MINUTE, 0)
+                            set(Calendar.SECOND, 0)
+                            set(Calendar.MILLISECOND, 0)
+                        }.time
                     }
-                    items(
-                        items = dayTransactions,
-                        key = { it.txnId } // Using txnId as a stable key for better performance
-                    ) { transaction: Transaction ->
-                        TransactionCard(
-                            transaction = transaction,
-                            onClick = {
-                                viewModel.selectTransaction(transaction)
-                                showTransactionDetails = true
+
+                    // Sort groups by date in descending order
+                    groupedTransactions.toSortedMap(compareByDescending { it })
+                        .forEach { (date, dayTransactions) ->
+                            item {
+                                Text(
+                                    text = dateFormat.format(date),
+                                    style = MaterialTheme.typography.titleMedium,
+                                    modifier = Modifier.padding(vertical = 8.dp)
+                                )
                             }
-                        )
-                    }
+                            items(
+                                items = dayTransactions,
+                                key = { it.txnId }
+                            ) { transaction: Transaction ->
+                                TransactionCard(
+                                    transaction = transaction,
+                                    onClick = {
+                                        viewModel.selectTransaction(transaction)
+                                        showTransactionDetails = true
+                                    }
+                                )
+                            }
+                        }
                 }
             }
         }
@@ -203,14 +208,12 @@ private fun TransactionCard(
     transaction: Transaction,
     onClick: () -> Unit
 ) {
-    Card(
+    EnhancedCard(
         onClick = onClick,
         modifier = Modifier.fillMaxWidth()
     ) {
         Column(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(16.dp)
+            modifier = Modifier.fillMaxWidth()
         ) {
             Row(
                 modifier = Modifier.fillMaxWidth(),

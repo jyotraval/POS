@@ -6,6 +6,7 @@ import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.layout.*
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Description
 import androidx.compose.material.icons.filled.FileDownload
 import androidx.compose.material.icons.filled.FileUpload
 import androidx.compose.material3.*
@@ -74,7 +75,7 @@ fun InventoryScreen(
                     onBackClick = onNavigateBack,
                     actions = {
                         IconButton(onClick = { showSampleDialog = true }) {
-                            Icon(Icons.Default.FileUpload, "Show Sample Format")
+                            Icon(Icons.Default.Description, "Show Sample Format")
                         }
                         IconButton(onClick = { filePickerLauncher.launch("*/*") }) {
                             Icon(Icons.Default.FileUpload, "Import CSV")
@@ -84,7 +85,10 @@ fun InventoryScreen(
                         }
                     }
                 )
-                TabRow(selectedTabIndex = selectedTab) {
+                TabRow(
+                    selectedTabIndex = selectedTab,
+                    containerColor = MaterialTheme.colorScheme.surface
+                ) {
                     tabs.forEachIndexed { index, title ->
                         Tab(
                             selected = selectedTab == index,

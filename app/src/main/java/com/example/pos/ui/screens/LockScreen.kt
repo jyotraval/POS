@@ -1,5 +1,9 @@
 package com.example.pos.ui.screens
 
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.scaleIn
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.*
@@ -22,60 +26,86 @@ fun LockScreen(
     val scope = rememberCoroutineScope()
     
     val settings by settingsDao.getSettings().collectAsState(initial = null)
+    var showCard by remember { mutableStateOf(false) }
+    LaunchedEffect(Unit) {
+        showCard = true
+    }
 
-    Column(
+    Box(
         modifier = Modifier
             .fillMaxSize()
-            .padding(16.dp),
-        horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.Center
+            .padding(24.dp),
+        contentAlignment = Alignment.Center
     ) {
-        Text(
-            text = "Enter PIN",
-            style = MaterialTheme.typography.headlineMedium
-        )
-        
-        Spacer(modifier = Modifier.height(16.dp))
-        
-        OutlinedTextField(
-            value = pin,
-            onValueChange = { 
-                if (it.length <= 4) {
-                    pin = it
-                    error = null
-                }
-            },
-            label = { Text("PIN") },
-            singleLine = true,
-            visualTransformation = PasswordVisualTransformation(),
-            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.NumberPassword),
-            isError = error != null,
-            supportingText = error?.let { { Text(it) } }
-        )
-        
-        Spacer(modifier = Modifier.height(16.dp))
-        
-        Button(
-            onClick = {
-                scope.launch {
-                    if (settings == null) {
-                        if (pin == "1111") {
-                            onUnlock()
-                        } else {
-                            error = "Invalid PIN"
-                        }
-                    } else {
-                        if (pin == settings?.pin) {
-                            onUnlock()
-                        } else {
-                            error = "Invalid PIN"
-                        }
+        AnimatedVisibility(
+            visible = showCard,
+            enter = fadeIn(tween(durationMillis = 220)) +
+                scaleIn(initialScale = 0.98f, animationSpec = tween(durationMillis = 220))
+        ) {
+            Card(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .widthIn(max = 420.dp)
+            ) {
+                Column(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(24.dp),
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    verticalArrangement = Arrangement.spacedBy(12.dp)
+                ) {
+                    Text(
+                        text = "POS System",
+                        style = MaterialTheme.typography.headlineLarge
+                    )
+                    Text(
+                        text = "Enter PIN to continue",
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+
+                    OutlinedTextField(
+                        value = pin,
+                        onValueChange = {
+                            if (it.length <= 4) {
+                                pin = it
+                                error = null
+                            }
+                        },
+                        label = { Text("PIN") },
+                        singleLine = true,
+                        visualTransformation = PasswordVisualTransformation(),
+                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.NumberPassword),
+                        isError = error != null,
+                        supportingText = error?.let { { Text(it) } },
+                        modifier = Modifier.fillMaxWidth()
+                    )
+
+                    Button(
+                        onClick = {
+                            scope.launch {
+                                if (settings == null) {
+                                    if (pin == "1111") {
+                                        onUnlock()
+                                    } else {
+                                        error = "Invalid PIN"
+                                    }
+                                } else {
+                                    if (pin == settings?.pin) {
+                                        onUnlock()
+                                    } else {
+                                        error = "Invalid PIN"
+                                    }
+                                }
+                            }
+                        },
+                        enabled = pin.length == 4,
+                        modifier = Modifier.fillMaxWidth()
+                    ) {
+                        Text("Unlock")
                     }
                 }
-            },
-            enabled = pin.length == 4
-        ) {
-            Text("Unlock")
+            }
         }
     }
 }

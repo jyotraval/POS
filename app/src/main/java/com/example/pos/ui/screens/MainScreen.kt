@@ -1,5 +1,9 @@
 package com.example.pos.ui.screens
 
+import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.fadeIn
+import androidx.compose.animation.slideInVertically
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
@@ -19,7 +23,7 @@ import androidx.compose.material.icons.filled.TrendingUp
 import androidx.compose.material.icons.filled.Payment
 import androidx.compose.material.icons.filled.Inventory
 import androidx.compose.material.icons.filled.Analytics
-import androidx.compose.material.icons.filled.ReceiptLong
+import androidx.compose.material.icons.automirrored.filled.ReceiptLong
 import androidx.compose.material.icons.filled.Speed
 import androidx.compose.material.icons.filled.Security
 import androidx.compose.material.icons.filled.CloudSync
@@ -27,6 +31,11 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
@@ -61,6 +70,20 @@ fun MainScreen(
             )
         }
     ) { padding ->
+        var showContent by remember { mutableStateOf(false) }
+        LaunchedEffect(Unit) {
+            showContent = true
+        }
+        val heroEnter = fadeIn(tween(durationMillis = 250)) +
+            slideInVertically(
+                animationSpec = tween(durationMillis = 250),
+                initialOffsetY = { it / 6 }
+            )
+        val actionsEnter = fadeIn(tween(durationMillis = 280, delayMillis = 80)) +
+            slideInVertically(
+                animationSpec = tween(durationMillis = 280, delayMillis = 80),
+                initialOffsetY = { it / 6 }
+            )
         LazyColumn(
             modifier = Modifier
                 .fillMaxSize()
@@ -69,21 +92,31 @@ fun MainScreen(
                     Brush.verticalGradient(
                         colors = listOf(
                             MaterialTheme.colorScheme.background,
-                            MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.3f)
+                            MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.25f)
                         )
                     )
                 ),
-            contentPadding = PaddingValues(16.dp),
+            contentPadding = PaddingValues(getResponsivePadding()),
             verticalArrangement = Arrangement.spacedBy(24.dp)
         ) {
             // Hero Section
             item {
-                HeroSection()
+                AnimatedVisibility(
+                    visible = showContent,
+                    enter = heroEnter
+                ) {
+                    HeroSection()
+                }
             }
             
             // Quick Actions Section
             item {
-                QuickActionsSection(onNavigate = onNavigate)
+                AnimatedVisibility(
+                    visible = showContent,
+                    enter = actionsEnter
+                ) {
+                    QuickActionsSection(onNavigate = onNavigate)
+                }
             }
         }
     }
@@ -95,49 +128,54 @@ private fun HeroSection() {
     EnhancedCard(
         modifier = Modifier.fillMaxWidth(),
         colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.1f)
+            containerColor = MaterialTheme.colorScheme.surface
         )
     ) {
         Column(
-            horizontalAlignment = Alignment.CenterHorizontally,
-            modifier = Modifier.padding(32.dp)
+            modifier = Modifier.padding(24.dp),
+            verticalArrangement = Arrangement.spacedBy(12.dp)
         ) {
-            // Main Icon with Gradient Background
-            Box(
-                modifier = Modifier
-                    .size(80.dp)
-                    .background(
-                        Brush.radialGradient(
-                            colors = listOf(
-                                MaterialTheme.colorScheme.primary.copy(alpha = 0.2f),
-                                MaterialTheme.colorScheme.primary.copy(alpha = 0.05f)
-                            )
-                        ),
-                        RoundedCornerShape(40.dp)
-                    ),
-                contentAlignment = Alignment.Center
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
             ) {
-                Icon(
-                    imageVector = Icons.Filled.Store,
-                    contentDescription = null,
-                    modifier = Modifier.size(40.dp),
-                    tint = MaterialTheme.colorScheme.primary
-                )
+                Column(
+                    modifier = Modifier.weight(1f)
+                ) {
+                    Text(
+                        text = "POS System",
+                        style = MaterialTheme.typography.headlineLarge,
+                        fontWeight = FontWeight.Bold,
+                        color = MaterialTheme.colorScheme.onSurface
+                    )
+                    Text(
+                        text = "Offline billing and local sales tracking",
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                }
+                Box(
+                    modifier = Modifier
+                        .size(56.dp)
+                        .background(
+                            MaterialTheme.colorScheme.primary.copy(alpha = 0.1f),
+                            RoundedCornerShape(16.dp)
+                        ),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Icon(
+                        imageVector = Icons.Filled.Store,
+                        contentDescription = null,
+                        modifier = Modifier.size(28.dp),
+                        tint = MaterialTheme.colorScheme.primary
+                    )
+                }
             }
-            
-            Spacer(modifier = Modifier.height(24.dp))
-            
-            Text(
-                text = "POS System",
-                style = MaterialTheme.typography.headlineLarge,
-                fontWeight = FontWeight.Bold,
-                textAlign = TextAlign.Center,
-                color = MaterialTheme.colorScheme.onSurface
+            StatusChip(
+                text = "Offline Ready",
+                status = ChipStatus.Success
             )
-            
-            Spacer(modifier = Modifier.height(8.dp))
-            
-            
         }
     }
 }
@@ -168,8 +206,8 @@ private fun QuickActionsSection(onNavigate: (String) -> Unit) {
                         subtitle = "Manage Products",
                         icon = Icons.AutoMirrored.Filled.List,
                         color = MaterialTheme.colorScheme.primary,
-                    onClick = { onNavigate(Screen.Inventory.route) },
-                    modifier = Modifier.weight(1f)
+                        onClick = { onNavigate(Screen.Inventory.route) },
+                        modifier = Modifier.weight(1f)
                     )
                     ActionCard(
                         title = "Billing",
@@ -194,7 +232,7 @@ private fun QuickActionsSection(onNavigate: (String) -> Unit) {
                     ActionCard(
                         title = "Transactions",
                         subtitle = "Sales History",
-                        icon = Icons.Default.ReceiptLong,
+                        icon = Icons.AutoMirrored.Filled.ReceiptLong,
                         color = MaterialTheme.colorScheme.primary,
                         onClick = { onNavigate(Screen.Transactions.route) },
                         modifier = Modifier.weight(1f)
@@ -230,7 +268,7 @@ private fun QuickActionsSection(onNavigate: (String) -> Unit) {
                 ActionCard(
                     title = "Transactions",
                     subtitle = "Sales History",
-                    icon = Icons.Default.ReceiptLong,
+                    icon = Icons.AutoMirrored.Filled.ReceiptLong,
                     color = MaterialTheme.colorScheme.primary,
                     onClick = { onNavigate(Screen.Transactions.route) }
                 )
@@ -254,7 +292,7 @@ private fun ActionCard(
         modifier = modifier,
         onClick = onClick,
         colors = CardDefaults.cardColors(
-            containerColor = color.copy(alpha = 0.1f)
+            containerColor = MaterialTheme.colorScheme.surface
         )
     ) {
         Row(
@@ -262,14 +300,21 @@ private fun ActionCard(
                 .fillMaxWidth()
                 .padding(16.dp),
             verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.spacedBy(16.dp)
+            horizontalArrangement = Arrangement.spacedBy(16.dp)
         ) {
-            Icon(
-                imageVector = icon,
-                contentDescription = null,
-                modifier = Modifier.size(32.dp),
-                tint = color
-            )
+            Box(
+                modifier = Modifier
+                    .size(40.dp)
+                    .background(color.copy(alpha = 0.12f), RoundedCornerShape(12.dp)),
+                contentAlignment = Alignment.Center
+            ) {
+                Icon(
+                    imageVector = icon,
+                    contentDescription = null,
+                    modifier = Modifier.size(20.dp),
+                    tint = color
+                )
+            }
             Column(
                 modifier = Modifier.weight(1f)
             ) {

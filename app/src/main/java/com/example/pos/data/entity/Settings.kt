@@ -17,3 +17,4 @@ data class Settings(
     val printerWidth: Int,
     val linesBeforeCut: Int
 )
+

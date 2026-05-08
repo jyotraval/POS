@@ -155,7 +155,7 @@ Total:                    **80**
   - Total, discount, final amount
   - Date, time, buyer info
 
-#### Search & Filter
+### Search & Filter
 - By:
   - Buyer Name
   - Phone Number
@@ -166,10 +166,55 @@ Total:                    **80**
 
 ### 3.8 Settings
 
+
 #### Stall Details
 - Name
 - Address
 - Phone Number
+
+| TransactionItems | id, transaction_id, item_id, quantity, unit_price, line_total     |
+| Settings       | stall_name, address, phone, pin, printer_mac, padding_top, padding_bottom |
+| Settings       | stall_name, address, phone, pin, admin_password, printer_mac, padding_top, padding_bottom |
+
+
+### 3.7 Past Transactions
+
+#### Transaction History
+- Grouped by Date
+- Each row shows:
+### 3.7 Past Transactions
+
+#### Transaction History
+- Grouped by Date
+- Each row shows:
+  - Txn ID (top-left)
+
+#### Search & Filter
+- By:
+  - Buyer Name
+  - Phone Number
+  - Txn ID
+  - Date range
+
+---
+
+### 3.8 Settings
+#### Search & Filter
+- By:
+  - Buyer Name
+  - Phone Number
+  - Txn ID
+  - Date range
+
+#### Manual Backdated Entry
+- `+` action on Transactions screen
+- Admin password prompt before access
+- Add itemized transaction for older dates (for example, 5 days ago)
+
+---
+
+### 3.8 Settings
+
 
 #### Security
 - Change App PIN
@@ -181,6 +226,12 @@ Total:                    **80**
 - Padding (top/bottom)
 - Width
 - **Test Print** functionality
+
+#### Layout
+- Accordion sections:
+  - Stall Details
+  - Printer Settings
+  - Security
 
 #### Cloud Sync (Hidden)
 - Logic pre-built, UI hidden by default

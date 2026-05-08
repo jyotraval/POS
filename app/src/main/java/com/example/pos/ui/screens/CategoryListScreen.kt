@@ -13,7 +13,10 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.pos.data.dao.CategoryDao
 import com.example.pos.data.entity.Category
+import com.example.pos.ui.components.EnhancedCard
 import com.example.pos.ui.components.PosTopBar
+import com.example.pos.ui.utils.getResponsivePadding
+import com.example.pos.ui.utils.getResponsiveSpacing
 import com.example.pos.ui.viewmodels.CategoryViewModel
 import kotlinx.coroutines.launch
 
@@ -77,8 +80,8 @@ fun CategoryListScreen(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(padding),
-            contentPadding = PaddingValues(16.dp),
-            verticalArrangement = Arrangement.spacedBy(8.dp)
+            contentPadding = PaddingValues(getResponsivePadding()),
+            verticalArrangement = Arrangement.spacedBy(getResponsiveSpacing())
         ) {
             items(categories) { category ->
                 CategoryItem(
@@ -153,18 +156,17 @@ fun CategoryListScreen(
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun CategoryItem(
+    modifier: Modifier = Modifier,
     category: Category,
     onEdit: (Category) -> Unit,
     onDelete: (Category) -> Unit
 ) {
-    Card(
-        modifier = Modifier.fillMaxWidth(),
+    EnhancedCard(
+        modifier = modifier.fillMaxWidth(),
         onClick = { onEdit(category) }
     ) {
         Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(16.dp),
+            modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.SpaceBetween,
             verticalAlignment = Alignment.CenterVertically
         ) {
@@ -173,7 +175,11 @@ private fun CategoryItem(
                 style = MaterialTheme.typography.titleMedium
             )
             IconButton(onClick = { onDelete(category) }) {
-                Icon(Icons.Default.Delete, "Delete")
+                Icon(
+                    Icons.Default.Delete,
+                    "Delete",
+                    tint = MaterialTheme.colorScheme.error
+                )
             }
         }
     }

@@ -27,14 +27,15 @@ import com.example.pos.ui.components.EnhancedCard
 import com.example.pos.ui.components.EnhancedButton
 import com.example.pos.ui.components.ButtonVariant
 import com.example.pos.ui.components.ButtonSize
-import com.example.pos.ui.components.EnhancedTextField
-import com.example.pos.ui.components.StatusChip
-import com.example.pos.ui.components.ChipStatus
 import kotlinx.coroutines.launch
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.withStyle
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.ui.text.input.KeyboardType
+import androidx.compose.ui.text.input.PasswordVisualTransformation
+import com.example.pos.ui.utils.getResponsivePadding
 
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -161,69 +162,66 @@ fun SettingsScreen(
         LazyColumn(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(padding)
-                .padding(16.dp),
+                .padding(padding),
+            contentPadding = PaddingValues(getResponsivePadding()),
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
             item {
-            Card {
-                Column(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(16.dp),
-                    verticalArrangement = Arrangement.spacedBy(16.dp)
-                ) {
-                    Text("Stall Details", style = MaterialTheme.typography.titleLarge)
-                    OutlinedTextField(
-                        value = stallName,
-                        onValueChange = { stallName = it },
-                        label = { Text("Stall Name") },
-                        modifier = Modifier.fillMaxWidth()
-                    )
-                    OutlinedTextField(
-                        value = address,
-                        onValueChange = { address = it },
-                        label = { Text("Address") },
-                        modifier = Modifier.fillMaxWidth()
-                    )
-                    OutlinedTextField(
-                        value = phone,
-                        onValueChange = { phone = it },
-                        label = { Text("Phone") },
-                        modifier = Modifier.fillMaxWidth()
-                    )
-                }
-                }
-            }
-
-            item {
-            Card {
-                Column(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(16.dp),
-                    verticalArrangement = Arrangement.spacedBy(16.dp)
-                ) {
-                    Text("Security", style = MaterialTheme.typography.titleLarge)
-                    OutlinedTextField(
-                        value = pin,
-                        onValueChange = { if (it.length <= 4) pin = it },
-                        label = { Text("PIN") },
-                        modifier = Modifier.fillMaxWidth()
-                    )
-                }
+                EnhancedCard(modifier = Modifier.fillMaxWidth()) {
+                    Column(
+                        modifier = Modifier.fillMaxWidth(),
+                        verticalArrangement = Arrangement.spacedBy(16.dp)
+                    ) {
+                        Text("Stall Details", style = MaterialTheme.typography.titleLarge)
+                        OutlinedTextField(
+                            value = stallName,
+                            onValueChange = { stallName = it },
+                            label = { Text("Stall Name") },
+                            modifier = Modifier.fillMaxWidth()
+                        )
+                        OutlinedTextField(
+                            value = address,
+                            onValueChange = { address = it },
+                            label = { Text("Address") },
+                            modifier = Modifier.fillMaxWidth()
+                        )
+                        OutlinedTextField(
+                            value = phone,
+                            onValueChange = { phone = it },
+                            label = { Text("Phone") },
+                            modifier = Modifier.fillMaxWidth(),
+                            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Phone)
+                        )
+                    }
                 }
             }
 
             item {
-            Card {
-                Column(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(16.dp),
-                    verticalArrangement = Arrangement.spacedBy(16.dp)
-                ) {
-                    Text("Printer Settings", style = MaterialTheme.typography.titleLarge)
+                EnhancedCard(modifier = Modifier.fillMaxWidth()) {
+                    Column(
+                        modifier = Modifier.fillMaxWidth(),
+                        verticalArrangement = Arrangement.spacedBy(16.dp)
+                    ) {
+                        Text("Security", style = MaterialTheme.typography.titleLarge)
+                        OutlinedTextField(
+                            value = pin,
+                            onValueChange = { if (it.length <= 4) pin = it },
+                            label = { Text("PIN") },
+                            modifier = Modifier.fillMaxWidth(),
+                            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.NumberPassword),
+                            visualTransformation = PasswordVisualTransformation()
+                        )
+                    }
+                }
+            }
+
+            item {
+                EnhancedCard(modifier = Modifier.fillMaxWidth()) {
+                    Column(
+                        modifier = Modifier.fillMaxWidth(),
+                        verticalArrangement = Arrangement.spacedBy(16.dp)
+                    ) {
+                        Text("Printer Settings", style = MaterialTheme.typography.titleLarge)
                     
                     // Bluetooth Device Picker
                     Card(
@@ -309,14 +307,14 @@ fun SettingsScreen(
                             if (!bluetoothPermissionGranted) {
                                 Spacer(modifier = Modifier.height(8.dp))
                                 Text(
-                                    "⚠️ Bluetooth permissions required",
+                                    "Bluetooth permissions required",
                                     style = MaterialTheme.typography.bodySmall,
                                     color = MaterialTheme.colorScheme.error
                                 )
                             } else if (bluetoothError != null) {
                                 Spacer(modifier = Modifier.height(8.dp))
                                 Text(
-                                    "❌ $bluetoothError",
+                                    "Error: $bluetoothError",
                                     style = MaterialTheme.typography.bodySmall,
                                     color = MaterialTheme.colorScheme.error
                                 )
@@ -337,6 +335,7 @@ fun SettingsScreen(
                         onValueChange = { printerMac = it },
                         label = { Text("Printer MAC Address (Manual)") },
                         modifier = Modifier.fillMaxWidth(),
+                        singleLine = true,
                         supportingText = { Text("Use device picker above for easier setup") }
                     )
                     Row(
@@ -347,28 +346,32 @@ fun SettingsScreen(
                             value = paddingTop,
                             onValueChange = { paddingTop = it },
                             label = { Text("Top Padding") },
-                            modifier = Modifier.weight(1f)
+                            modifier = Modifier.weight(1f),
+                            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number)
                         )
                         OutlinedTextField(
                             value = paddingBottom,
                             onValueChange = { paddingBottom = it },
                             label = { Text("Bottom Padding") },
-                            modifier = Modifier.weight(1f)
+                            modifier = Modifier.weight(1f),
+                            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number)
                         )
                     }
                     OutlinedTextField(
                         value = printerWidth,
                         onValueChange = { printerWidth = it },
                         label = { Text("Printer Width") },
-                        modifier = Modifier.fillMaxWidth()
+                        modifier = Modifier.fillMaxWidth(),
+                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number)
                     )
                     OutlinedTextField(
                         value = linesBeforeCut,
                         onValueChange = { linesBeforeCut = it },
                         label = { Text("Lines Before Cut") },
-                        modifier = Modifier.fillMaxWidth()
+                        modifier = Modifier.fillMaxWidth(),
+                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number)
                     )
-                    Button(
+                    EnhancedButton(
                         onClick = {
                             scope.launch {
                                 try {
@@ -406,7 +409,9 @@ fun SettingsScreen(
                                 }
                             }
                         },
-                        modifier = Modifier.fillMaxWidth()
+                        modifier = Modifier.fillMaxWidth(),
+                        variant = ButtonVariant.Secondary,
+                        size = ButtonSize.Large
                     ) {
                         Text("Test Print")
                     }
@@ -415,17 +420,9 @@ fun SettingsScreen(
             }
 
             item {
-                Card(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(16.dp),
-                    shape = MaterialTheme.shapes.medium,
-                    elevation = CardDefaults.cardElevation(defaultElevation = 8.dp)
-                ) {
+                EnhancedCard(modifier = Modifier.fillMaxWidth()) {
                     Column(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(24.dp),
+                        modifier = Modifier.fillMaxWidth(),
                         verticalArrangement = Arrangement.spacedBy(12.dp)
                     ) {
                         var tapCount by remember { mutableStateOf(0) }
@@ -438,18 +435,18 @@ fun SettingsScreen(
                             modifier = Modifier.clickable {
                                 tapCount++
                                 if (tapCount == 5) {
-                                    Toast.makeText(context, "v1.0.0 (_stable_)", Toast.LENGTH_SHORT).show()
+                                    Toast.makeText(context, "v1.0.0 (stable)", Toast.LENGTH_SHORT).show()
                                     tapCount = 0
                                 }
                             }
                         )
                         Text(
-                            text = "Crafted by Jyot Raval",
+                            text = "Crafted for offline sales",
                             style = MaterialTheme.typography.bodyMedium,
                             color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
                         Text(
-                            text= "To keeping sales seamless and your day effortless.",
+                            text = "Keep sales seamless and your day effortless.",
                             style = MaterialTheme.typography.bodyMedium,
                             color = MaterialTheme.colorScheme.onSurfaceVariant
                         )

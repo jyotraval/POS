@@ -3,58 +3,58 @@ package com.example.pos.ui.theme
 import androidx.compose.ui.graphics.Color
 
 // Professional POS Color Palette
-val PrimaryBlue = Color(0xFF1565C0)
-val PrimaryBlueLight = Color(0xFF5E92F3)
-val PrimaryBlueDark = Color(0xFF003C8F)
+val PrimaryBlue = Color(0xFF1F4B99)
+val PrimaryBlueLight = Color(0xFF5B7FD8)
+val PrimaryBlueDark = Color(0xFF173466)
 
-val SecondaryTeal = Color(0xFF00796B)
-val SecondaryTealLight = Color(0xFF4DB6AC)
-val SecondaryTealDark = Color(0xFF004D40)
+val SecondaryTeal = Color(0xFF0F766E)
+val SecondaryTealLight = Color(0xFF5FB8B2)
+val SecondaryTealDark = Color(0xFF0B4F4A)
 
-val AccentOrange = Color(0xFFFF7043)
-val AccentOrangeLight = Color(0xFFFFAB91)
-val AccentOrangeDark = Color(0xFFC63F17)
+val AccentOrange = Color(0xFFE07A1A)
+val AccentOrangeLight = Color(0xFFFFB25B)
+val AccentOrangeDark = Color(0xFFB35C00)
 
 // Success & Status Colors
-val SuccessGreen = Color(0xFF2E7D32)
-val SuccessGreenLight = Color(0xFF66BB6A)
-val SuccessGreenDark = Color(0xFF1B5E20)
+val SuccessGreen = Color(0xFF1F7A3E)
+val SuccessGreenLight = Color(0xFF59B86E)
+val SuccessGreenDark = Color(0xFF155B2D)
 
-val WarningAmber = Color(0xFFFF8F00)
-val WarningAmberLight = Color(0xFFFFB74D)
-val WarningAmberDark = Color(0xFFE65100)
+val WarningAmber = Color(0xFFF59E0B)
+val WarningAmberLight = Color(0xFFFCCB69)
+val WarningAmberDark = Color(0xFFB45309)
 
-val ErrorRed = Color(0xFFD32F2F)
+val ErrorRed = Color(0xFFC62828)
 val ErrorRedLight = Color(0xFFEF5350)
-val ErrorRedDark = Color(0xFFB71C1C)
+val ErrorRedDark = Color(0xFF8E1E1E)
 
-val InfoBlue = Color(0xFF1976D2)
-val InfoBlueLight = Color(0xFF42A5F5)
-val InfoBlueDark = Color(0xFF0D47A1)
+val InfoBlue = Color(0xFF2563EB)
+val InfoBlueLight = Color(0xFF60A5FA)
+val InfoBlueDark = Color(0xFF1E40AF)
 
 // Neutral Colors - Professional Grays
-val BackgroundLight = Color(0xFFF8F9FA)
-val BackgroundDark = Color(0xFF0D1117)
+val BackgroundLight = Color(0xFFF7F7F5)
+val BackgroundDark = Color(0xFF101418)
 val SurfaceLight = Color(0xFFFFFFFF)
-val SurfaceDark = Color(0xFF161B22)
+val SurfaceDark = Color(0xFF161B20)
 
 // Text Colors - High Contrast
-val TextPrimaryLight = Color(0xFF1A1A1A)
-val TextPrimaryDark = Color(0xFFF0F6FC)
-val TextSecondaryLight = Color(0xFF6B7280)
-val TextSecondaryDark = Color(0xFF8B949E)
+val TextPrimaryLight = Color(0xFF1B1F24)
+val TextPrimaryDark = Color(0xFFE6E9ED)
+val TextSecondaryLight = Color(0xFF56606D)
+val TextSecondaryDark = Color(0xFF9AA3AD)
 
 // Surface Variants
-val SurfaceVariantLight = Color(0xFFF1F5F9)
-val SurfaceVariantDark = Color(0xFF21262D)
-val OutlineLight = Color(0xFFE2E8F0)
-val OutlineDark = Color(0xFF30363D)
+val SurfaceVariantLight = Color(0xFFF0F2F5)
+val SurfaceVariantDark = Color(0xFF1E252D)
+val OutlineLight = Color(0xFFD7DCE2)
+val OutlineDark = Color(0xFF2C3440)
 
 // Special Colors for POS
-val CartHighlight = Color(0xFF4CAF50)
-val CartHighlightLight = Color(0xFF81C784)
-val SelectedItemBorder = Color(0xFF1976D2)
-val DiscountColor = Color(0xFFFF6F00)
+val CartHighlight = SuccessGreen
+val CartHighlightLight = SuccessGreenLight
+val SelectedItemBorder = PrimaryBlue
+val DiscountColor = WarningAmber
 
 // Legacy colors for compatibility
 val Purple80 = PrimaryBlueLight

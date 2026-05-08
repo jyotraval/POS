@@ -101,7 +101,7 @@ class TransactionViewModel(
         }.time
     }
 
-    fun selectTransaction(transaction: Transaction?) {
+fun selectTransaction(transaction: Transaction?) {
         _selectedTransaction.value = transaction
     }
 

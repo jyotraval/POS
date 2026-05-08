@@ -1,11 +1,15 @@
 package com.example.pos.ui.components
 
+import androidx.compose.animation.animateContentSize
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.TrendingDown
+import androidx.compose.material.icons.automirrored.filled.TrendingFlat
+import androidx.compose.material.icons.automirrored.filled.TrendingUp
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -20,39 +24,49 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.example.pos.ui.theme.InfoBlue
+import com.example.pos.ui.theme.SuccessGreen
+import com.example.pos.ui.theme.WarningAmber
 
 // Enhanced Card Component
 @Composable
 fun EnhancedCard(
     modifier: Modifier = Modifier,
     onClick: (() -> Unit)? = null,
-    elevation: CardElevation = CardDefaults.cardElevation(defaultElevation = 4.dp),
-    colors: CardColors = CardDefaults.cardColors(),
+    elevation: CardElevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
+    colors: CardColors = CardDefaults.cardColors(
+        containerColor = MaterialTheme.colorScheme.surface
+    ),
     content: @Composable ColumnScope.() -> Unit
 ) {
-    Card(
-        modifier = modifier
-            .shadow(
-                elevation = 4.dp,
-                shape = RoundedCornerShape(12.dp)
-            )
-            .then(
-                if (onClick != null) {
-                    Modifier.clickable { onClick() }
-                } else {
-                    Modifier
-                }
-            ),
-        shape = RoundedCornerShape(12.dp),
-        colors = colors,
-        elevation = CardDefaults.cardElevation(defaultElevation = 0.dp),
-        content = {
+    val shape = RoundedCornerShape(14.dp)
+    val cardModifier = modifier.animateContentSize()
+    if (onClick != null) {
+        Card(
+            onClick = onClick,
+            modifier = cardModifier,
+            shape = shape,
+            colors = colors,
+            elevation = elevation
+        ) {
             Column(
                 modifier = Modifier.padding(16.dp),
                 content = content
             )
         }
-    )
+    } else {
+        Card(
+            modifier = cardModifier,
+            shape = shape,
+            colors = colors,
+            elevation = elevation
+        ) {
+            Column(
+                modifier = Modifier.padding(16.dp),
+                content = content
+            )
+        }
+    }
 }
 
 // Enhanced Button Component
@@ -67,14 +81,17 @@ fun EnhancedButton(
     content: @Composable RowScope.() -> Unit
 ) {
     val colors = when (variant) {
-        ButtonVariant.Primary -> ButtonDefaults.buttonColors()
+        ButtonVariant.Primary -> ButtonDefaults.buttonColors(
+            containerColor = MaterialTheme.colorScheme.primary,
+            contentColor = MaterialTheme.colorScheme.onPrimary
+        )
         ButtonVariant.Secondary -> ButtonDefaults.buttonColors(
             containerColor = MaterialTheme.colorScheme.secondary,
             contentColor = MaterialTheme.colorScheme.onSecondary
         )
         ButtonVariant.Success -> ButtonDefaults.buttonColors(
-            containerColor = MaterialTheme.colorScheme.primary,
-            contentColor = MaterialTheme.colorScheme.onPrimary
+            containerColor = SuccessGreen,
+            contentColor = Color.White
         )
         ButtonVariant.Danger -> ButtonDefaults.buttonColors(
             containerColor = MaterialTheme.colorScheme.error,
@@ -87,19 +104,33 @@ fun EnhancedButton(
         ButtonSize.Medium -> PaddingValues(horizontal = 16.dp, vertical = 12.dp)
         ButtonSize.Large -> PaddingValues(horizontal = 20.dp, vertical = 16.dp)
     }
+    val minHeight = when (size) {
+        ButtonSize.Small -> 36.dp
+        ButtonSize.Medium -> 44.dp
+        ButtonSize.Large -> 52.dp
+    }
     
     Button(
         onClick = onClick,
-        modifier = modifier,
+        modifier = modifier.heightIn(min = minHeight),
         enabled = enabled,
         colors = colors,
         contentPadding = padding,
-        shape = RoundedCornerShape(8.dp),
+        shape = RoundedCornerShape(10.dp),
         content = {
             Row(
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.spacedBy(8.dp),
-                content = content
+                content = {
+                    if (icon != null) {
+                        Icon(
+                            imageVector = icon,
+                            contentDescription = null,
+                            modifier = Modifier.size(18.dp)
+                        )
+                    }
+                    content()
+                }
             )
         }
     )
@@ -131,7 +162,7 @@ fun EnhancedTextField(
             isError = isError,
             singleLine = singleLine,
             enabled = enabled,
-            shape = RoundedCornerShape(8.dp),
+            shape = RoundedCornerShape(10.dp),
             colors = OutlinedTextFieldDefaults.colors(
                 focusedBorderColor = MaterialTheme.colorScheme.primary,
                 unfocusedBorderColor = MaterialTheme.colorScheme.outline
@@ -157,10 +188,10 @@ fun StatusChip(
     modifier: Modifier = Modifier
 ) {
     val (backgroundColor, contentColor) = when (status) {
-        ChipStatus.Success -> MaterialTheme.colorScheme.primary to MaterialTheme.colorScheme.onPrimary
-        ChipStatus.Warning -> MaterialTheme.colorScheme.tertiary to MaterialTheme.colorScheme.onTertiary
+        ChipStatus.Success -> SuccessGreen to Color.White
+        ChipStatus.Warning -> WarningAmber to Color.White
         ChipStatus.Error -> MaterialTheme.colorScheme.error to MaterialTheme.colorScheme.onError
-        ChipStatus.Info -> MaterialTheme.colorScheme.secondary to MaterialTheme.colorScheme.onSecondary
+        ChipStatus.Info -> InfoBlue to Color.White
     }
     
     Surface(
@@ -203,14 +234,14 @@ fun MetricCard(
             ) {
                 Text(
                     text = title,
-                    style = MaterialTheme.typography.titleMedium,
+                    style = MaterialTheme.typography.labelLarge,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
                 Spacer(modifier = Modifier.height(4.dp))
                 Text(
                     text = value,
                     style = MaterialTheme.typography.headlineMedium,
-                    fontWeight = FontWeight.Bold,
+                    fontWeight = FontWeight.SemiBold,
                     color = MaterialTheme.colorScheme.onSurface
                 )
                 subtitle?.let {
@@ -228,7 +259,7 @@ fun MetricCard(
                     imageVector = it,
                     contentDescription = null,
                     tint = MaterialTheme.colorScheme.primary,
-                    modifier = Modifier.size(32.dp)
+                    modifier = Modifier.size(28.dp)
                 )
             }
         }
@@ -241,9 +272,9 @@ fun MetricCard(
             ) {
                 Icon(
                     imageVector = when (it) {
-                        TrendDirection.Up -> Icons.Filled.TrendingUp
-                        TrendDirection.Down -> Icons.Filled.TrendingDown
-                        TrendDirection.Neutral -> Icons.Filled.TrendingFlat
+                        TrendDirection.Up -> Icons.AutoMirrored.Filled.TrendingUp
+                        TrendDirection.Down -> Icons.AutoMirrored.Filled.TrendingDown
+                        TrendDirection.Neutral -> Icons.AutoMirrored.Filled.TrendingFlat
                     },
                     contentDescription = null,
                     tint = when (it) {
@@ -252,19 +283,6 @@ fun MetricCard(
                         TrendDirection.Neutral -> MaterialTheme.colorScheme.onSurfaceVariant
                     },
                     modifier = Modifier.size(16.dp)
-                )
-                Text(
-                    text = when (it) {
-                        TrendDirection.Up -> "↗"
-                        TrendDirection.Down -> "↘"
-                        TrendDirection.Neutral -> "→"
-                    },
-                    style = MaterialTheme.typography.bodySmall,
-                    color = when (it) {
-                        TrendDirection.Up -> MaterialTheme.colorScheme.primary
-                        TrendDirection.Down -> MaterialTheme.colorScheme.error
-                        TrendDirection.Neutral -> MaterialTheme.colorScheme.onSurfaceVariant
-                    }
                 )
             }
         }

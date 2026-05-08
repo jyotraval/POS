@@ -1,5 +1,7 @@
 package com.example.pos.ui.screens
 
+import androidx.compose.animation.core.animateFloatAsState
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
@@ -12,7 +14,7 @@ import androidx.compose.material.icons.filled.DateRange
 import androidx.compose.material.icons.filled.CalendarMonth
 import androidx.compose.material.icons.automirrored.filled.List
 import androidx.compose.material.icons.filled.FileDownload
-import androidx.compose.material.icons.filled.TrendingUp
+import androidx.compose.material.icons.automirrored.filled.TrendingUp
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -23,12 +25,14 @@ import androidx.compose.ui.unit.dp
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.pos.data.dao.ItemDao
 import com.example.pos.data.dao.TransactionDao
-import com.example.pos.ui.components.PosTopBar
 import com.example.pos.ui.components.EnhancedCard
+import com.example.pos.ui.components.PosTopBar
 import com.example.pos.ui.components.MetricCard
 import com.example.pos.ui.components.StatusChip
 import com.example.pos.ui.components.ChipStatus
 import com.example.pos.ui.components.TrendDirection
+import com.example.pos.ui.utils.getResponsivePadding
+import com.example.pos.ui.utils.getResponsiveSpacing
 import com.example.pos.ui.viewmodels.DashboardViewModel
 import kotlinx.coroutines.launch
 import java.text.NumberFormat
@@ -86,8 +90,8 @@ fun DashboardScreen(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(padding),
-            contentPadding = PaddingValues(16.dp),
-            verticalArrangement = Arrangement.spacedBy(16.dp)
+            contentPadding = PaddingValues(getResponsivePadding()),
+            verticalArrangement = Arrangement.spacedBy(getResponsiveSpacing())
         ) {
             // Summary Cards
             item {
@@ -98,7 +102,7 @@ fun DashboardScreen(
                     MetricCard(
                         title = "Total Sales",
                         value = formatPrice(totalSales),
-                        icon = Icons.Filled.TrendingUp,
+                        icon = Icons.AutoMirrored.Filled.TrendingUp,
                         trend = TrendDirection.Up,
                         modifier = Modifier.weight(1f)
                     )
@@ -112,25 +116,16 @@ fun DashboardScreen(
                 }
             }
 
-            // Sales Chart with enhanced styling
+            // Sales Chart
             item {
-                Card(
+                EnhancedCard(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .height(350.dp),
-                    colors = CardDefaults.cardColors(
-                        containerColor = MaterialTheme.colorScheme.surface
-                    ),
-                    elevation = CardDefaults.cardElevation(defaultElevation = 8.dp),
-                    border = BorderStroke(
-                        2.dp,
-                        MaterialTheme.colorScheme.primary.copy(alpha = 0.2f)
-                    )
+                        .height(340.dp)
                 ) {
                     Column(
                         modifier = Modifier
                             .fillMaxSize()
-                            .padding(20.dp)
                     ) {
                         Row(
                             modifier = Modifier.fillMaxWidth(),
@@ -149,7 +144,9 @@ fun DashboardScreen(
                             )
                             
                             // Toggle buttons
-                            Row {
+                            Row(
+                                horizontalArrangement = Arrangement.spacedBy(8.dp)
+                            ) {
                                 FilterChip(
                                     selected = viewMode == DashboardViewModel.ViewMode.DAILY,
                                     onClick = { 
@@ -163,7 +160,6 @@ fun DashboardScreen(
                                         selectedLabelColor = MaterialTheme.colorScheme.onPrimary
                                     )
                                 )
-                                Spacer(modifier = Modifier.width(8.dp))
                                 FilterChip(
                                     selected = viewMode == DashboardViewModel.ViewMode.MONTHLY,
                                     onClick = { 
@@ -185,6 +181,11 @@ fun DashboardScreen(
                             val maxAmount = salesData.maxOfOrNull { it.total } ?: 1.0
                             
                             salesData.take(7).forEach { sale ->
+                                val targetFraction = (sale.total / maxAmount).toFloat()
+                                val animatedFraction by animateFloatAsState(
+                                    targetValue = targetFraction,
+                                    animationSpec = tween(durationMillis = 350)
+                                )
                                 Row(
                                     modifier = Modifier
                                         .fillMaxWidth()
@@ -224,7 +225,7 @@ fun DashboardScreen(
                                         Box(
                                             modifier = Modifier
                                                 .fillMaxHeight()
-                                                .fillMaxWidth((sale.total / maxAmount).toFloat())
+                                                .fillMaxWidth(animatedFraction)
                                                 .background(
                                                     MaterialTheme.colorScheme.primary,
                                                     RoundedCornerShape(10.dp)
@@ -261,16 +262,15 @@ fun DashboardScreen(
 
             // Top Selling Items
             item {
-                Card(
+                EnhancedCard(
                     modifier = Modifier.fillMaxWidth()
                 ) {
                     Column(
                         modifier = Modifier
                             .fillMaxWidth()
-                            .padding(16.dp)
                     ) {
                         Text(
-                            text = "Top Selling (Items)",
+                            text = "Top Items",
                             style = MaterialTheme.typography.titleLarge,
                             modifier = Modifier.padding(bottom = 16.dp)
                         )

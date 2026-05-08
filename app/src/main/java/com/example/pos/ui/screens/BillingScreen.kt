@@ -1,8 +1,11 @@
 package com.example.pos.ui.screens
 
 import android.content.Context
+import androidx.compose.animation.animateColorAsState
+import androidx.compose.animation.core.tween
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.LazyRow
@@ -14,7 +17,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Delete
-import androidx.compose.material.icons.filled.Close
+import androidx.compose.material.icons.filled.Remove
 import androidx.compose.material.icons.filled.Edit
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -176,7 +179,10 @@ fun BillingScreen(
                 verticalArrangement = Arrangement.spacedBy(getResponsiveSpacing()),
                 modifier = Modifier.weight(1f)
                 ) {
-                    items(items) { item ->
+                    items(
+                        items = items,
+                        key = { it.id }
+                    ) { item ->
                         ItemTile(
                             item = item,
                             cartItem = cart[item.id],
@@ -273,6 +279,7 @@ fun BillingScreen(
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun ItemTile(
+    modifier: Modifier = Modifier,
     item: Item,
     cartItem: CartItem?,
     onAdd: () -> Unit,
@@ -280,7 +287,21 @@ private fun ItemTile(
     onUpdateQuantity: (Int) -> Unit
 ) {
     var showQuantityDialog by remember { mutableStateOf(false) }
-    
+
+    val tileShape = RoundedCornerShape(14.dp)
+    val containerColor by animateColorAsState(
+        targetValue = if (cartItem != null) {
+            MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.15f)
+        } else {
+            MaterialTheme.colorScheme.surface
+        },
+        animationSpec = tween(durationMillis = 180)
+    )
+    val borderColor by animateColorAsState(
+        targetValue = if (cartItem != null) SelectedItemBorder else Color.Transparent,
+        animationSpec = tween(durationMillis = 180)
+    )
+
     EnhancedCard(
         onClick = { 
             if (cartItem == null) {
@@ -289,15 +310,12 @@ private fun ItemTile(
                 onUpdateQuantity(cartItem.quantity + 1)
             }
         },
-        modifier = Modifier
-            .aspectRatio(0.85f)
-            .fillMaxWidth(),
+        modifier = modifier
+            .aspectRatio(0.9f)
+            .fillMaxWidth()
+            .border(1.5.dp, borderColor, tileShape),
         colors = CardDefaults.cardColors(
-            containerColor = if (cartItem != null) {
-                MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.15f)
-            } else {
-                MaterialTheme.colorScheme.surface
-            }
+            containerColor = containerColor
         )
     ) {
         Column(
@@ -350,7 +368,7 @@ private fun ItemTile(
                             )
                     ) {
                         Icon(
-                            Icons.Filled.Close, 
+                            Icons.Filled.Remove,
                             "Decrease",
                             tint = MaterialTheme.colorScheme.error,
                             modifier = Modifier.size(20.dp)
@@ -463,7 +481,11 @@ private fun CartItemRow(
                 modifier = Modifier.padding(horizontal = 8.dp)
             )
             IconButton(onClick = onRemove) {
-                Icon(Icons.Default.Delete, "Remove")
+                Icon(
+                    Icons.Default.Delete,
+                    "Remove",
+                    tint = MaterialTheme.colorScheme.error
+                )
             }
         }
     }
@@ -505,14 +527,16 @@ private fun DiscountDialog(
                         onValueChange = { amount = it },
                         label = { Text("Amount") },
                         singleLine = true,
-                        modifier = Modifier.fillMaxWidth()
+                        modifier = Modifier.fillMaxWidth(),
+                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number)
                     )
                     1 -> OutlinedTextField(
                         value = percent,
                         onValueChange = { percent = it },
                         label = { Text("Percentage") },
                         singleLine = true,
-                        modifier = Modifier.fillMaxWidth()
+                        modifier = Modifier.fillMaxWidth(),
+                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number)
                     )
                 }
             }
@@ -821,7 +845,7 @@ private fun BottomActionBar(
             OutlinedTextField(
                 value = buyerName,
                 onValueChange = onUpdateBuyerName,
-                label = { Text("Name") },
+                label = { Text("Customer Name") },
                 singleLine = true,
                 modifier = Modifier.weight(1f)
             )
@@ -857,7 +881,7 @@ private fun BottomActionBar(
             ) {
                 Column {
                     Text(
-                        text = "${cart.size} items",
+                        text = "Items: ${cart.size}",
                         style = MaterialTheme.typography.bodyMedium.copy(
                             fontWeight = FontWeight.Medium
                         ),
@@ -903,7 +927,7 @@ private fun BottomActionBar(
                         variant = ButtonVariant.Success,
                         size = ButtonSize.Large
                     ) {
-                        Text("Bill")
+                        Text("Preview")
                     }
                 }
             }
