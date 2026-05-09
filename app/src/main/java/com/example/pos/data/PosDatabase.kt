@@ -5,16 +5,12 @@ import androidx.room.Database
 import androidx.room.Room
 import androidx.room.RoomDatabase
 import androidx.room.TypeConverters
-import com.example.pos.data.dao.*
-import com.example.pos.data.entity.*
+import com.example.pos.data.dao.SettingsDao
+import com.example.pos.data.entity.Settings
 import com.example.pos.util.Converters
 
 @Database(
     entities = [
-        Category::class,
-        Item::class,
-        Transaction::class,
-        TransactionItem::class,
         Settings::class
     ],
     version = 2,
@@ -22,9 +18,6 @@ import com.example.pos.util.Converters
 )
 @TypeConverters(Converters::class)
 abstract class PosDatabase : RoomDatabase() {
-    abstract fun categoryDao(): CategoryDao
-    abstract fun itemDao(): ItemDao
-    abstract fun transactionDao(): TransactionDao
     abstract fun settingsDao(): SettingsDao
 
     companion object {

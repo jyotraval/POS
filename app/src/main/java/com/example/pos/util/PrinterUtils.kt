@@ -8,14 +8,13 @@ import android.content.pm.PackageManager
 import androidx.core.content.ContextCompat
 import com.dantsu.escposprinter.EscPosPrinter
 import com.dantsu.escposprinter.connection.bluetooth.BluetoothPrintersConnections
-import com.dantsu.escposprinter.textparser.PrinterTextParserImg
 import java.text.SimpleDateFormat
 import java.util.*
 
 object PrinterUtils {
     private const val DEFAULT_PRINTER_DPI = 203
     private const val DEFAULT_PRINTER_WIDTH_MM = 58
-    private const val DEFAULT_PRINTER_CHARS_PER_LINE = 32
+    private const val DEFAULT_PRINTER_CHARS_PER_LINE = 42
     
     // DEBUG MODE - Set to true when you don't have a printer
     // When false, will send signals to printer normally
@@ -23,7 +22,7 @@ object PrinterUtils {
     
     // VERBOSE_LOGGING - Set to true for detailed receipt logging
     // When false, only errors and warnings are logged
-    private const val VERBOSE_LOGGING = false
+    private const val VERBOSE_LOGGING = true
 
     private fun hasBluetoothPermissions(context: Context): Boolean {
         return ContextCompat.checkSelfPermission(
@@ -220,6 +219,26 @@ object PrinterUtils {
         }
     }
 
+    fun getTestReceiptPreview(
+        stallName: String,
+        address: String,
+        phone: String,
+        paddingTop: Int,
+        paddingBottom: Int,
+        linesBeforeCut: Int,
+        printerWidth: Int
+    ): String {
+        return getTestReceiptText(
+            stallName = stallName,
+            address = address,
+            phone = phone,
+            paddingTop = paddingTop,
+            paddingBottom = paddingBottom,
+            linesBeforeCut = linesBeforeCut,
+            printerWidth = printerWidth
+        )
+    }
+
     private fun connectPrinter(macAddress: String): EscPosPrinter? {
         try {
             val bluetoothAdapter = BluetoothAdapter.getDefaultAdapter()
@@ -294,19 +313,31 @@ object PrinterUtils {
         linesBeforeCut: Int,
         printerWidth: Int
     ): String {
-        val date = SimpleDateFormat("dd-MM-yyyy HH:mm", Locale.getDefault()).format(Date())
-        
-        return "[C]<b>$stallName</b>\n" +
-            "[C]$address\n" +
-            "[C]$phone\n" +
-            "[C]${"-".repeat(printerWidth)}\n" +
-            "[L]Date: $date\n" +
-            "[C]*** TEST PRINT ***\n" +
-            "[C]${"-".repeat(printerWidth)}\n" +
-            "[L]Printer connection successful!\n" +
-            "[L]\n".repeat(linesBeforeCut) +
-            "[C]Thank You!\n" +
-            "[L]\n".repeat(paddingBottom)
+        val items = listOf(
+            ReceiptItem("Samosa", 10, 20.0, 200.0),
+            ReceiptItem("Samosa Pav", 1, 50.0, 50.0),
+            ReceiptItem("Dahi Kachori", 5, 20.0, 100.0),
+            ReceiptItem("Chinenese Manchurian", 2, 100.0, 200.0)
+        )
+        val subtotal = items.sumOf { it.total }
+        val total = subtotal
+
+        return getReceiptText(
+            stallName = stallName,
+            address = address,
+            phone = phone,
+            txnId = "TEST-PRINT",
+            buyerName = null,
+            buyerPhone = null,
+            items = items,
+            subtotal = subtotal,
+            discount = 0.0,
+            total = total,
+            paddingTop = paddingTop,
+            paddingBottom = paddingBottom,
+            linesBeforeCut = linesBeforeCut,
+            printerWidth = printerWidth
+        )
     }
 
     fun printReceipt(
@@ -447,7 +478,7 @@ object PrinterUtils {
         val reservedSpace = 20  // Same as item formatting
         val availableForHeader = printerWidth - reservedSpace
         val headerItemText = "Item".padEnd(availableForHeader)
-        sb.append("[L]<b>$headerItemText Qty  Price   Total</b>\n")
+        sb.append("[L]<b>$headerItemText Qty \t Price \t Total</b>\n")
         items.forEach { item ->
             val qty = item.quantity.toString().padStart(3)
             val price = String.format("%.1f", item.unitPrice).padStart(6)
@@ -463,7 +494,7 @@ object PrinterUtils {
             if (item.name.length <= availableForName) {
                 // Item name fits - format: "Name        Qty  Price  Total"
                 val paddedName = item.name.padEnd(availableForName)
-                sb.append("[L]$paddedName$qty  $price $total\n")
+                sb.append("[L]$paddedName$qty \t $price \t $total\n")
             } else {
                 // Item name is too long - put on separate line
                 sb.append("[L]${item.name}\n")
