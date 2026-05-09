@@ -141,10 +141,17 @@ fun InventoryScreen(
         )
     }
     
-    // Sample Format Dialog
+    // Sample Format Dialog (allows paste-and-import)
     if (showSampleDialog) {
         SampleFormatDialog(
-            onDismiss = { showSampleDialog = false }
+            onDismiss = { showSampleDialog = false },
+            categoryDao = categoryDao,
+            itemDao = itemDao,
+            onImportComplete = { result ->
+                showSampleDialog = false
+                importResult = result
+                showImportDialog = true
+            }
         )
     }
 }
@@ -222,11 +229,17 @@ private fun ExportSuccessDialog(
 
 @Composable
 private fun SampleFormatDialog(
-    onDismiss: () -> Unit
+    onDismiss: () -> Unit,
+    categoryDao: com.example.pos.data.dao.CategoryDao,
+    itemDao: com.example.pos.data.dao.ItemDao,
+    onImportComplete: (com.example.pos.util.InventoryUtils.ImportResult) -> Unit
 ) {
+    val scope = rememberCoroutineScope()
+    var textContent by remember { mutableStateOf(InventoryUtils.getSampleCsvContent()) }
+
     AlertDialog(
         onDismissRequest = onDismiss,
-        title = { 
+        title = {
             Text(
                 "File Format Guide",
                 fontWeight = FontWeight.Bold
@@ -247,31 +260,43 @@ private fun SampleFormatDialog(
                     fontWeight = FontWeight.Bold
                 )
                 Spacer(modifier = Modifier.height(8.dp))
-                Text("Sample data:")
-                Card(
-                    modifier = Modifier.fillMaxWidth(),
-                    colors = CardDefaults.cardColors(
-                        containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f)
-                    )
-                ) {
-                    Text(
-                        text = InventoryUtils.getSampleCsvContent(),
-                        style = MaterialTheme.typography.bodySmall,
-                        modifier = Modifier.padding(8.dp)
-                    )
-                }
+                Text("Sample data (editable) — you can paste CSV text here and press Import:")
+                Spacer(modifier = Modifier.height(8.dp))
+                OutlinedTextField(
+                    value = textContent,
+                    onValueChange = { textContent = it },
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(180.dp),
+                    textStyle = MaterialTheme.typography.bodySmall,
+                    singleLine = false,
+                    maxLines = 20
+                )
                 Spacer(modifier = Modifier.height(8.dp))
                 Text(
-                    "Note: Categories will be created automatically if they don't exist. Column names are case-insensitive.",
+                    "Note: Categories will be created automatically if they don't exist. Blank category becomes 'Defaultlt'.",
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
             }
         },
         confirmButton = {
-            TextButton(onClick = onDismiss) {
-                Text("OK")
+            Row {
+                TextButton(onClick = {
+                    // Import the pasted content
+                    scope.launch {
+                        val result = InventoryUtils.importFromCsvContent(textContent, categoryDao, itemDao)
+                        onImportComplete(result)
+                    }
+                }) {
+                    Text("Import Pasted CSV")
+                }
+                Spacer(modifier = Modifier.width(8.dp))
+                TextButton(onClick = onDismiss) {
+                    Text("Cancel")
+                }
             }
-        }
+        },
+        dismissButton = null
     )
 }

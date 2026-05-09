@@ -2,7 +2,7 @@
   "formatVersion": 1,
   "database": {
     "version": 3,
-    "identityHash": "ca0442bbbd44913f96c1f96b538f39f4",
+    "identityHash": "f990fb902cac56ca185d8d25da0fec56",
     "entities": [
       {
         "tableName": "categories",
@@ -246,7 +246,7 @@
       },
       {
         "tableName": "settings",
-        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` INTEGER NOT NULL, `stallName` TEXT NOT NULL, `address` TEXT NOT NULL, `phone` TEXT NOT NULL, `pin` TEXT NOT NULL, `adminPassword` TEXT NOT NULL, `printerMac` TEXT, `paddingTop` INTEGER NOT NULL, `paddingBottom` INTEGER NOT NULL, `printerWidth` INTEGER NOT NULL, `linesBeforeCut` INTEGER NOT NULL, PRIMARY KEY(`id`))",
+        "createSql": "CREATE TABLE IF NOT EXISTS `${TABLE_NAME}` (`id` INTEGER NOT NULL, `stallName` TEXT NOT NULL, `address` TEXT NOT NULL, `phone` TEXT NOT NULL, `pin` TEXT NOT NULL, `printerMac` TEXT, `paddingTop` INTEGER NOT NULL, `paddingBottom` INTEGER NOT NULL, `printerWidth` INTEGER NOT NULL, `linesBeforeCut` INTEGER NOT NULL, PRIMARY KEY(`id`))",
         "fields": [
           {
             "fieldPath": "id",
@@ -275,12 +275,6 @@
           {
             "fieldPath": "pin",
             "columnName": "pin",
-            "affinity": "TEXT",
-            "notNull": true
-          },
-          {
-            "fieldPath": "adminPassword",
-            "columnName": "adminPassword",
             "affinity": "TEXT",
             "notNull": true
           },
@@ -328,7 +322,7 @@
     "views": [],
     "setupQueries": [
       "CREATE TABLE IF NOT EXISTS room_master_table (id INTEGER PRIMARY KEY,identity_hash TEXT)",
-      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, 'ca0442bbbd44913f96c1f96b538f39f4')"
+      "INSERT OR REPLACE INTO room_master_table (id,identity_hash) VALUES(42, 'f990fb902cac56ca185d8d25da0fec56')"
     ]
   }
 }

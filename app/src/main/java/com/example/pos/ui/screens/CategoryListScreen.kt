@@ -83,7 +83,7 @@ fun CategoryListScreen(
             contentPadding = PaddingValues(getResponsivePadding()),
             verticalArrangement = Arrangement.spacedBy(getResponsiveSpacing())
         ) {
-            items(categories) { category ->
+            items(categories, key = { it.id }) { category ->
                 CategoryItem(
                     category = category,
                     onEdit = { selectedCategory = it },

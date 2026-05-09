@@ -112,7 +112,7 @@ fun ItemListScreen(
                         label = { Text("All") }
                     )
                 }
-                items(categories) { category ->
+                items(categories, key = { it.id }) { category ->
                     FilterChip(
                         selected = selectedCategoryId == category.id,
                         onClick = { itemViewModel.setSelectedCategory(category.id) },
@@ -136,14 +136,16 @@ fun ItemListScreen(
                     )
                 }
             } else {
+                val categoryMap = remember(categories) { categories.associateBy { it.id } }
+
                 LazyColumn(
                     contentPadding = PaddingValues(getResponsivePadding()),
                     verticalArrangement = Arrangement.spacedBy(getResponsiveSpacing())
                 ) {
-                    items(items) { item ->
+                    items(items, key = { it.id }) { item ->
                         ItemCard(
                             item = item,
-                            category = categories.find { it.id == item.categoryId },
+                            category = categoryMap[item.categoryId],
                             onEdit = { selectedItem = it },
                             onDelete = {
                                 selectedItem = it
@@ -250,9 +252,9 @@ private fun ItemCard(
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.spacedBy(8.dp)
             ) {
+                val currencyFormatter = remember { NumberFormat.getCurrencyInstance(Locale.forLanguageTag("en-IN")) }
                 Text(
-                    text = NumberFormat.getCurrencyInstance(Locale.forLanguageTag("en-IN"))
-                        .format(item.price),
+                    text = currencyFormatter.format(item.price),
                     style = MaterialTheme.typography.titleMedium
                 )
                 IconButton(onClick = { onDelete(item) }) {

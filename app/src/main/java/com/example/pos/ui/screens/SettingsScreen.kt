@@ -46,6 +46,7 @@ fun SettingsScreen(
 ) {
     val scope = rememberCoroutineScope()
     val context = LocalContext.current
+    val snackbarHostState = remember { androidx.compose.material3.SnackbarHostState() }
     val settings by settingsDao.getSettings().collectAsState(initial = null)
     
     var stallName by remember { mutableStateOf(settings?.stallName ?: "") }
@@ -53,10 +54,10 @@ fun SettingsScreen(
     var phone by remember { mutableStateOf(settings?.phone ?: "") }
     var pin by remember { mutableStateOf(settings?.pin ?: "1111") }
     var printerMac by remember { mutableStateOf(settings?.printerMac ?: "") }
-    var paddingTop by remember { mutableStateOf(settings?.paddingTop?.toString() ?: "0") }
-    var paddingBottom by remember { mutableStateOf(settings?.paddingBottom?.toString() ?: "0") }
-    var printerWidth by remember { mutableStateOf(settings?.printerWidth?.toString() ?: "32") }
-    var linesBeforeCut by remember { mutableStateOf(settings?.linesBeforeCut?.toString() ?: "3") }
+    var paddingTop by remember { mutableStateOf(settings?.paddingTop?.toString() ?: "2") }
+    var paddingBottom by remember { mutableStateOf(settings?.paddingBottom?.toString() ?: "2") }
+    var printerWidth by remember { mutableStateOf(settings?.printerWidth?.toString() ?: "42") }
+    var linesBeforeCut by remember { mutableStateOf(settings?.linesBeforeCut?.toString() ?: "2") }
     
     var showResetDialog by remember { mutableStateOf(false) }
     var showSaveSuccess by remember { mutableStateOf(false) }
@@ -80,10 +81,10 @@ fun SettingsScreen(
             phone = settings?.phone ?: ""
             pin = settings?.pin ?: "1111"
             printerMac = settings?.printerMac ?: ""
-            paddingTop = settings?.paddingTop?.toString() ?: "0"
-            paddingBottom = settings?.paddingBottom?.toString() ?: "0"
-            printerWidth = settings?.printerWidth?.toString() ?: "32"
-            linesBeforeCut = settings?.linesBeforeCut?.toString() ?: "3"
+            paddingTop = settings?.paddingTop?.toString() ?: "2"
+            paddingBottom = settings?.paddingBottom?.toString() ?: "2"
+            printerWidth = settings?.printerWidth?.toString() ?: "42"
+            linesBeforeCut = settings?.linesBeforeCut?.toString() ?: "2"
         }
     }
 
@@ -128,33 +129,38 @@ fun SettingsScreen(
     }
 
     Scaffold(
+        snackbarHost = { androidx.compose.material3.SnackbarHost(hostState = snackbarHostState) },
         topBar = {
             PosTopBar(
                 title = "Settings",
                 onBackClick = onNavigateBack,
                 actions = {
-                    IconButton(
-                        onClick = {
-                            scope.launch {
-                                settingsDao.insertOrUpdateSettings(
-                                    Settings(
-                                        stallName = stallName,
-                                        address = address,
-                                        phone = phone,
-                                        pin = pin,
-                                        printerMac = printerMac,
-                                        paddingTop = paddingTop.toIntOrNull() ?: 0,
-                                        paddingBottom = paddingBottom.toIntOrNull() ?: 0,
-                                        printerWidth = printerWidth.toIntOrNull() ?: 32,
-                                        linesBeforeCut = linesBeforeCut.toIntOrNull() ?: 3
+                        IconButton(onClick = {
+                            if (pin.length < 4) {
+                                scope.launch {
+                                    snackbarHostState.showSnackbar("PIN must be at least 4 digits")
+                                }
+                            } else {
+                                scope.launch {
+                                    settingsDao.insertOrUpdateSettings(
+                                        Settings(
+                                            stallName = stallName,
+                                            address = address,
+                                            phone = phone,
+                                            pin = pin,
+                                            printerMac = printerMac,
+                                            paddingTop = paddingTop.toIntOrNull() ?: 2,
+                                            paddingBottom = paddingBottom.toIntOrNull() ?: 2,
+                                            printerWidth = printerWidth.toIntOrNull() ?: 42,
+                                            linesBeforeCut = linesBeforeCut.toIntOrNull() ?: 2
+                                        )
                                     )
-                                )
-                                showSaveSuccess = true
+                                    showSaveSuccess = true
+                                }
                             }
+                        }) {
+                            Icon(Icons.Filled.Check, "Save Settings")
                         }
-                    ) {
-                        Icon(Icons.Filled.Check, "Save Settings")
-                    }
                 }
             )
         }
@@ -381,10 +387,10 @@ fun SettingsScreen(
                                         phone = phone,
                                         pin = pin,
                                         printerMac = printerMac,
-                                        paddingTop = paddingTop.toIntOrNull() ?: 0,
-                                        paddingBottom = paddingBottom.toIntOrNull() ?: 0,
-                                        printerWidth = printerWidth.toIntOrNull() ?: 32,
-                                        linesBeforeCut = linesBeforeCut.toIntOrNull() ?: 3
+                                        paddingTop = paddingTop.toIntOrNull() ?: 2,
+                                        paddingBottom = paddingBottom.toIntOrNull() ?: 2,
+                                        printerWidth = printerWidth.toIntOrNull() ?: 42,
+                                        linesBeforeCut = linesBeforeCut.toIntOrNull() ?: 2
                                     )
                                     
                                     val success = com.example.pos.util.PrinterUtils.testPrint(

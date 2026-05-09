@@ -76,24 +76,60 @@ object InventoryUtils {
                 )
             }
             
+            // Delegate to content importer to share logic
+            val content = lines.joinToString("\n")
+            return@withContext importFromCsvContent(content, categoryDao, itemDao)
+        } catch (e: Exception) {
+            ImportResult(
+                success = false,
+                message = "Error reading file: ${e.message}",
+                itemsAdded = 0,
+                categoriesAdded = 0,
+                errors = listOf(e.message ?: "Unknown error")
+            )
+        }
+    }
+
+    /**
+     * Import inventory from raw CSV content (string). Allows paste-based import without a file.
+     */
+    suspend fun importFromCsvContent(
+        content: String,
+        categoryDao: CategoryDao,
+        itemDao: ItemDao
+    ): ImportResult = withContext(Dispatchers.IO) {
+        try {
+            val lines = content.lines().map { it.trim() }.filter { it.isNotEmpty() }
+
+            if (lines.isEmpty()) {
+                return@withContext ImportResult(
+                    success = false,
+                    message = "Content is empty",
+                    itemsAdded = 0,
+                    categoriesAdded = 0,
+                    errors = emptyList()
+                )
+            }
+
             // Skip header row if it exists and normalize column names
             val dataLines = if (isHeaderRow(lines.first())) {
                 lines.drop(1)
             } else {
                 lines
             }
-            
+
             val inventoryItems = mutableListOf<InventoryItem>()
             val errors = mutableListOf<String>()
-            
+
             dataLines.forEachIndexed { index, line ->
                 try {
                     val parts = line.split(",").map { it.trim() }
                     if (parts.size >= 3) {
+                        val category = parts[1].ifBlank { "Defaultlt" }
                         inventoryItems.add(
                             InventoryItem(
                                 item = parts[0],
-                                category = parts[1],
+                                category = category,
                                 price = parts[2]
                             )
                         )
@@ -104,23 +140,23 @@ object InventoryUtils {
                     errors.add("Line ${index + 1}: ${e.message}")
                 }
             }
-            
+
             if (inventoryItems.isEmpty()) {
                 return@withContext ImportResult(
                     success = false,
-                    message = "No valid items found in file",
+                    message = "No valid items found in content",
                     itemsAdded = 0,
                     categoriesAdded = 0,
                     errors = errors
                 )
             }
-            
+
             // Process categories and items
             val existingCategoriesFlow = categoryDao.getAllCategories()
             val existingCategories = existingCategoriesFlow.first().associateBy { it.name.lowercase() }
             val categoriesToAdd = mutableSetOf<String>()
             val itemsToAdd = mutableListOf<Item>()
-            
+
             inventoryItems.forEach { inventoryItem ->
                 // Validate price
                 val price = try {
@@ -130,19 +166,19 @@ object InventoryUtils {
                     errors.add("Item '${inventoryItem.item}': Invalid price '${inventoryItem.price}'")
                     return@forEach
                 }
-                
+
                 if (price <= 0) {
                     errors.add("Item '${inventoryItem.item}': Price must be greater than 0")
                     return@forEach
                 }
-                
-                // Check if category exists
+
+                // Check if category exists (use Defaultlt if blank)
                 val categoryKey = inventoryItem.category.lowercase()
                 if (!existingCategories.containsKey(categoryKey)) {
                     categoriesToAdd.add(inventoryItem.category)
                 }
             }
-            
+
             // Add new categories
             val categoryMap = existingCategories.toMutableMap()
             categoriesToAdd.forEach { categoryName ->
@@ -150,7 +186,7 @@ object InventoryUtils {
                 val categoryId = categoryDao.insert(category)
                 categoryMap[categoryName.lowercase()] = category.copy(id = categoryId)
             }
-            
+
             // Add items
             inventoryItems.forEach { inventoryItem ->
                 val price = try {
@@ -159,7 +195,7 @@ object InventoryUtils {
                 } catch (e: Exception) {
                     return@forEach // Already handled above
                 }
-                
+
                 val category = categoryMap[inventoryItem.category.lowercase()]
                 if (category != null) {
                     val item = Item(
@@ -170,12 +206,12 @@ object InventoryUtils {
                     itemsToAdd.add(item)
                 }
             }
-            
+
             // Insert items in batch
             itemsToAdd.forEach { item ->
                 itemDao.insert(item)
             }
-            
+
             ImportResult(
                 success = true,
                 message = "Successfully imported ${itemsToAdd.size} items and ${categoriesToAdd.size} categories",
@@ -183,11 +219,11 @@ object InventoryUtils {
                 categoriesAdded = categoriesToAdd.size,
                 errors = errors
             )
-            
+
         } catch (e: Exception) {
             ImportResult(
                 success = false,
-                message = "Error reading file: ${e.message}",
+                message = "Error processing content: ${e.message}",
                 itemsAdded = 0,
                 categoriesAdded = 0,
                 errors = listOf(e.message ?: "Unknown error")
