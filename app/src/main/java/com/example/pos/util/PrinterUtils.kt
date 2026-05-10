@@ -449,7 +449,8 @@ object PrinterUtils {
         printerWidth: Int
     ): String {
         val date = SimpleDateFormat("dd-MM-yyyy HH:mm", Locale.getDefault()).format(Date())
-        return "[C]<b>$stallName</b>\n" +
+        return "[L]\n".repeat(paddingTop) +
+            "[C]<b>$stallName</b>\n" +
             "[C]$address\n" +
             "[C]$phone\n" +
             "[C]--------------------------------\n" +
