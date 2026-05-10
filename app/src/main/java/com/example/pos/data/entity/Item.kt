@@ -22,5 +22,6 @@ data class Item(
     val id: Long = 0,
     val name: String,
     val price: Double,
-    val categoryId: Long
+    val categoryId: Long,
+    val isPinned: Boolean = false
 )

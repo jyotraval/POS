@@ -150,7 +150,8 @@ fun ItemListScreen(
                             onDelete = {
                                 selectedItem = it
                                 showDeleteDialog = true
-                            }
+                            },
+                            onPin = { itemViewModel.togglePin(it) }
                         )
                     }
                 }
@@ -164,8 +165,8 @@ fun ItemListScreen(
             categories = categories,
             selectedCategoryId = selectedCategoryId,
             onDismiss = { showAddDialog = false },
-            onConfirm = { name, price, categoryId ->
-                itemViewModel.addItem(name, price, categoryId)
+            onConfirm = { name, price, categoryId, isPinned ->
+                itemViewModel.addItem(name, price, categoryId, isPinned)
                 showAddDialog = false
             }
         )
@@ -178,8 +179,8 @@ fun ItemListScreen(
                 categories = categories,
                 selectedCategoryId = item.categoryId,
                 onDismiss = { selectedItem = null },
-                onConfirm = { name, price, categoryId ->
-                    itemViewModel.updateItem(item.copy(name = name, price = price, categoryId = categoryId))
+                onConfirm = { name, price, categoryId, isPinned ->
+                    itemViewModel.updateItem(item.copy(name = name, price = price, categoryId = categoryId, isPinned = isPinned))
                     selectedItem = null
                 }
             )
@@ -226,7 +227,8 @@ private fun ItemCard(
     item: Item,
     category: Category?,
     onEdit: (Item) -> Unit,
-    onDelete: (Item) -> Unit
+    onDelete: (Item) -> Unit,
+    onPin: (Item) -> Unit
 ) {
     EnhancedCard(
         modifier = modifier.fillMaxWidth(),
@@ -257,6 +259,13 @@ private fun ItemCard(
                     text = currencyFormatter.format(item.price),
                     style = MaterialTheme.typography.titleMedium
                 )
+                IconButton(onClick = { onPin(item) }) {
+                    Icon(
+                        imageVector = if (item.isPinned) Icons.Default.PushPin else Icons.Default.PushPin,
+                        contentDescription = if (item.isPinned) "Unpin" else "Pin",
+                        tint = if (item.isPinned) MaterialTheme.colorScheme.primary else MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                }
                 IconButton(onClick = { onDelete(item) }) {
                     Icon(
                         Icons.Default.Delete,
@@ -276,11 +285,12 @@ private fun ItemDialog(
     categories: List<Category>,
     selectedCategoryId: Long?,
     onDismiss: () -> Unit,
-    onConfirm: (String, Double, Long) -> Unit
+    onConfirm: (String, Double, Long, Boolean) -> Unit
 ) {
     var name by remember { mutableStateOf(item?.name ?: "") }
     var price by remember { mutableStateOf(item?.price?.toString() ?: "") }
     var categoryId by remember { mutableStateOf(item?.categoryId ?: selectedCategoryId ?: categories.firstOrNull()?.id ?: 0) }
+    var isPinned by remember { mutableStateOf(item?.isPinned ?: false) }
     
     var nameError by remember { mutableStateOf(false) }
     var priceError by remember { mutableStateOf(false) }
@@ -363,7 +373,7 @@ private fun ItemDialog(
                     priceError = price.toDoubleOrNull() == null || price.toDouble() <= 0
 
                     if (!nameError && !priceError) {
-                        onConfirm(name, price.toDouble(), categoryId)
+                        onConfirm(name, price.toDouble(), categoryId, isPinned)
                     }
                 }
             ) {

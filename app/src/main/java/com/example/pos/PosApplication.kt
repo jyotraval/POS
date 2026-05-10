@@ -26,14 +26,14 @@ class PosApplication : Application() {
             try {
                 val categoryDao = database.categoryDao()
                 val existing = try {
-                    categoryDao.getAllCategories().firstOrNull()?.firstOrNull { it.name.equals("Defaultlt", ignoreCase = true) }
+                    categoryDao.getAllCategories().firstOrNull()?.firstOrNull { it.name.equals("default01", ignoreCase = true) }
                 } catch (e: Exception) {
                     null
                 }
 
                 if (existing == null) {
-                    categoryDao.insert(Category(name = "Defaultlt"))
-                    android.util.Log.i("PosApplication", "Inserted default category 'Defaultlt'")
+                    categoryDao.insert(Category(name = "default01"))
+                    android.util.Log.i("PosApplication", "Inserted default category 'default01'")
                 }
             } catch (e: Exception) {
                 android.util.Log.e("PosApplication", "Failed to ensure default category", e)

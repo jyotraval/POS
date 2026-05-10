@@ -54,6 +54,9 @@ import kotlinx.coroutines.launch
 import java.text.NumberFormat
 import java.util.*
 
+// Reusable formatter to avoid allocating per-item
+private val currencyFormatter: NumberFormat = NumberFormat.getCurrencyInstance(Locale.forLanguageTag("en-IN"))
+
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun BillingScreen(
@@ -152,7 +155,7 @@ fun BillingScreen(
                             )
                         )
                     }
-                    items(categories) { category ->
+                    items(categories, key = { it.id }) { category ->
                         FilterChip(
                             selected = selectedCategoryId == category.id,
                             onClick = { viewModel.setSelectedCategory(category.id) },
@@ -180,9 +183,9 @@ fun BillingScreen(
                 modifier = Modifier.weight(1f)
                 ) {
                     items(
-                        items = items,
-                        key = { it.id }
-                    ) { item ->
+                            items = items,
+                            key = { it.id }
+                        ) { item ->
                         ItemTile(
                             item = item,
                             cartItem = cart[item.id],
@@ -295,11 +298,7 @@ private fun ItemTile(
         } else {
             MaterialTheme.colorScheme.surface
         },
-        animationSpec = tween(durationMillis = 180)
-    )
-    val borderColor by animateColorAsState(
-        targetValue = if (cartItem != null) SelectedItemBorder else Color.Transparent,
-        animationSpec = tween(durationMillis = 180)
+        animationSpec = tween(durationMillis = 120)
     )
 
     EnhancedCard(
@@ -312,8 +311,7 @@ private fun ItemTile(
         },
         modifier = modifier
             .aspectRatio(0.9f)
-            .fillMaxWidth()
-            .border(1.5.dp, borderColor, tileShape),
+            .fillMaxWidth(),
         colors = CardDefaults.cardColors(
             containerColor = containerColor
         )
@@ -341,13 +339,14 @@ private fun ItemTile(
                 shape = RoundedCornerShape(8.dp),
                 color = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.3f)
             ) {
-                Text(
-                    text = formatPrice(item.price),
-                    style = MaterialTheme.typography.bodyLarge,
-                    fontWeight = FontWeight.Bold,
-                    color = MaterialTheme.colorScheme.primary,
-                    modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp)
-                )
+                            val priceText = remember(item.price) { currencyFormatter.format(item.price) }
+                            Text(
+                                text = priceText,
+                                style = MaterialTheme.typography.bodyLarge,
+                                fontWeight = FontWeight.Bold,
+                                color = MaterialTheme.colorScheme.primary,
+                                modifier = Modifier.padding(horizontal = 12.dp, vertical = 6.dp)
+                            )
             }
             
             // Quantity Controls or Add Button
@@ -470,13 +469,15 @@ private fun CartItemRow(
                     text = cartItem.item.name,
                     style = MaterialTheme.typography.titleMedium
                 )
-                Text(
-                    text = "${formatPrice(cartItem.item.price)} × ${cartItem.quantity}",
-                    style = MaterialTheme.typography.bodyMedium
-                )
+                        val unitPriceText = remember(cartItem.item.price, cartItem.quantity) { "${currencyFormatter.format(cartItem.item.price)} × ${cartItem.quantity}" }
+                        Text(
+                            text = unitPriceText,
+                            style = MaterialTheme.typography.bodyMedium
+                        )
             }
+            val lineTotalText = remember(cartItem.lineTotal) { currencyFormatter.format(cartItem.lineTotal) }
             Text(
-                text = formatPrice(cartItem.lineTotal),
+                text = lineTotalText,
                 style = MaterialTheme.typography.titleMedium,
                 modifier = Modifier.padding(horizontal = 8.dp)
             )
@@ -1075,6 +1076,5 @@ private fun BillPreviewDialog(
 }
 
 private fun formatPrice(price: Double): String {
-    return NumberFormat.getCurrencyInstance(Locale.forLanguageTag("en-IN"))
-        .format(price)
+    return currencyFormatter.format(price)
 }

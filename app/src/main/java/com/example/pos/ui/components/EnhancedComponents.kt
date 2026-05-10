@@ -33,7 +33,7 @@ import com.example.pos.ui.theme.WarningAmber
 fun EnhancedCard(
     modifier: Modifier = Modifier,
     onClick: (() -> Unit)? = null,
-    elevation: CardElevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
+    elevation: CardElevation = CardDefaults.cardElevation(defaultElevation = 0.dp),
     colors: CardColors = CardDefaults.cardColors(
         containerColor = MaterialTheme.colorScheme.surface
     ),
@@ -41,10 +41,14 @@ fun EnhancedCard(
 ) {
     val shape = RoundedCornerShape(14.dp)
     val cardModifier = modifier.animateContentSize()
+    val borderColor = MaterialTheme.colorScheme.outline.copy(alpha = 0.6f)
+    val cardModifierWithBorder = cardModifier
+        .border(border = androidx.compose.foundation.BorderStroke(1.dp, borderColor), shape = shape)
+        .clip(shape)
     if (onClick != null) {
         Card(
             onClick = onClick,
-            modifier = cardModifier,
+            modifier = cardModifierWithBorder,
             shape = shape,
             colors = colors,
             elevation = elevation
@@ -56,7 +60,7 @@ fun EnhancedCard(
         }
     } else {
         Card(
-            modifier = cardModifier,
+            modifier = cardModifierWithBorder,
             shape = shape,
             colors = colors,
             elevation = elevation

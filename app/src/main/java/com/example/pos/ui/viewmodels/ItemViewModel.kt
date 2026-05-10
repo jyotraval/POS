@@ -35,7 +35,7 @@ class ItemViewModel(
         _selectedCategoryId.value = categoryId
     }
 
-    fun addItem(name: String, price: Double, categoryId: Long) {
+    fun addItem(name: String, price: Double, categoryId: Long, isPinned: Boolean = false) {
         if (name.isBlank()) {
             _uiState.value = ItemUiState.Error("Item name cannot be empty")
             return
@@ -47,7 +47,7 @@ class ItemViewModel(
 
         viewModelScope.launch {
             try {
-                itemDao.insert(Item(name = name.trim(), price = price, categoryId = categoryId))
+                itemDao.insert(Item(name = name.trim(), price = price, categoryId = categoryId, isPinned = isPinned))
                 _uiState.value = ItemUiState.Success("Item added successfully")
             } catch (e: Exception) {
                 _uiState.value = ItemUiState.Error("Failed to add item")
@@ -82,6 +82,17 @@ class ItemViewModel(
                 _uiState.value = ItemUiState.Success("Item deleted successfully")
             } catch (e: Exception) {
                 _uiState.value = ItemUiState.Error("Failed to delete item")
+            }
+        }
+    }
+
+    fun togglePin(item: Item) {
+        viewModelScope.launch {
+            try {
+                itemDao.update(item.copy(isPinned = !item.isPinned))
+                _uiState.value = ItemUiState.Success(if (!item.isPinned) "Item pinned" else "Item unpinned")
+            } catch (e: Exception) {
+                _uiState.value = ItemUiState.Error("Failed to toggle pin")
             }
         }
     }

@@ -8,10 +8,10 @@ import com.example.pos.data.model.TopSellingItem
 
 @Dao
 interface ItemDao {
-    @Query("SELECT * FROM items WHERE categoryId = :categoryId ORDER BY name ASC")
+    @Query("SELECT * FROM items WHERE categoryId = :categoryId ORDER BY isPinned DESC, name ASC")
     fun getItemsByCategory(categoryId: Long): Flow<List<Item>>
 
-    @Query("SELECT * FROM items ORDER BY name ASC")
+    @Query("SELECT * FROM items ORDER BY isPinned DESC, name ASC")
     fun getAllItems(): Flow<List<Item>>
 
     @Insert

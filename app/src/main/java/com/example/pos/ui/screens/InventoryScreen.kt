@@ -274,7 +274,7 @@ private fun SampleFormatDialog(
                 )
                 Spacer(modifier = Modifier.height(8.dp))
                 Text(
-                    "Note: Categories will be created automatically if they don't exist. Blank category becomes 'Defaultlt'.",
+                    "Note: Categories will be created automatically if they don't exist. Blank category becomes 'default01'.",
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )

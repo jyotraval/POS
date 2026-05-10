@@ -8,6 +8,7 @@ import android.content.pm.PackageManager
 import androidx.core.content.ContextCompat
 import com.dantsu.escposprinter.EscPosPrinter
 import com.dantsu.escposprinter.connection.bluetooth.BluetoothPrintersConnections
+import com.dantsu.escposprinter.connection.bluetooth.BluetoothConnection
 import com.dantsu.escposprinter.textparser.PrinterTextParserImg
 import java.text.SimpleDateFormat
 import java.util.*
@@ -26,12 +27,18 @@ object PrinterUtils {
     private const val VERBOSE_LOGGING = false
 
     private fun hasBluetoothPermissions(context: Context): Boolean {
-        return ContextCompat.checkSelfPermission(
-            context, Manifest.permission.BLUETOOTH_CONNECT
-        ) == PackageManager.PERMISSION_GRANTED &&
-        ContextCompat.checkSelfPermission(
-            context, Manifest.permission.BLUETOOTH_SCAN
-        ) == PackageManager.PERMISSION_GRANTED
+        return if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.S) {
+            ContextCompat.checkSelfPermission(
+                context, Manifest.permission.BLUETOOTH_CONNECT
+            ) == PackageManager.PERMISSION_GRANTED &&
+            ContextCompat.checkSelfPermission(
+                context, Manifest.permission.BLUETOOTH_SCAN
+            ) == PackageManager.PERMISSION_GRANTED
+        } else {
+            ContextCompat.checkSelfPermission(
+                context, Manifest.permission.BLUETOOTH
+            ) == PackageManager.PERMISSION_GRANTED
+        }
     }
 
     fun isPrinterPaired(macAddress: String, context: Context): Boolean {
@@ -204,12 +211,25 @@ object PrinterUtils {
 
             android.util.Log.d("PrinterUtils", "Connecting to printer and printing test receipt...")
             try {
-                printer.printFormattedTextAndCut(testText, linesBeforeCut)
-            } catch (_: Throwable) {
-                // Fallback if method not available
-                printer.printFormattedText(testText)
+                try {
+                    printer.printFormattedTextAndCut(testText, linesBeforeCut.toFloat())
+                } catch (_: Throwable) {
+                    // Fallback if method not available
+                    printer.printFormattedText(testText)
+                }
+
+                // Allow Bluetooth stack and printer hardware time to flush before disconnecting
+                try {
+                    Thread.sleep(800)
+                } catch (_: InterruptedException) {
+                    // ignore
+                }
+            } finally {
+                try {
+                    printer.disconnectPrinter()
+                } catch (_: Throwable) {
+                }
             }
-            printer.disconnectPrinter()
             
             android.util.Log.d("PrinterUtils", "Test print completed successfully")
             return true
@@ -255,7 +275,7 @@ object PrinterUtils {
             
             android.util.Log.d("PrinterUtils", "Found target device: ${targetDevice.name} (${targetDevice.address})")
             
-            // Try to create connection using the specific device
+            // Use the legacy paired-printer selection flow that was previously working.
             val connection = try {
                 BluetoothPrintersConnections.selectFirstPaired()
             } catch (e: Exception) {
@@ -294,19 +314,31 @@ object PrinterUtils {
         linesBeforeCut: Int,
         printerWidth: Int
     ): String {
-        val date = SimpleDateFormat("dd-MM-yyyy HH:mm", Locale.getDefault()).format(Date())
-        
-        return "[C]<b>$stallName</b>\n" +
-            "[C]$address\n" +
-            "[C]$phone\n" +
-            "[C]${"-".repeat(printerWidth)}\n" +
-            "[L]Date: $date\n" +
-            "[C]*** TEST PRINT ***\n" +
-            "[C]${"-".repeat(printerWidth)}\n" +
-            "[L]Printer connection successful!\n" +
-            "[L]\n".repeat(linesBeforeCut) +
-            "[C]Thank You!\n" +
-            "[L]\n".repeat(paddingBottom)
+        val items = listOf(
+            ReceiptItem("Samosa", 10, 20.0, 200.0),
+            ReceiptItem("Samosa Pav", 1, 50.0, 50.0),
+            ReceiptItem("Dahi Kachori", 5, 20.0, 100.0),
+            ReceiptItem("Chinenese Manchurian", 2, 100.0, 200.0)
+        )
+        val subtotal = items.sumOf { it.total }
+        val total = subtotal
+
+        return getReceiptText(
+            stallName = stallName,
+            address = address,
+            phone = phone,
+            txnId = "TEST-PRINT",
+            buyerName = null,
+            buyerPhone = null,
+            items = items,
+            subtotal = subtotal,
+            discount = 0.0,
+            total = total,
+            paddingTop = paddingTop,
+            paddingBottom = paddingBottom,
+            linesBeforeCut = linesBeforeCut,
+            printerWidth = printerWidth
+        )
     }
 
     fun printReceipt(
@@ -381,12 +413,7 @@ object PrinterUtils {
             }
             
             android.util.Log.d("PrinterUtils", "Connecting to printer and printing receipt...")
-            try {
-                printer.printFormattedTextAndCut(receiptText, linesBeforeCut)
-            } catch (_: Throwable) {
-                // Fallback if method not available
-                printer.printFormattedText(receiptText)
-            }
+            printer.printFormattedText(receiptText)
             printer.disconnectPrinter()
             
             android.util.Log.d("PrinterUtils", "Receipt print completed successfully")
@@ -422,77 +449,30 @@ object PrinterUtils {
         printerWidth: Int
     ): String {
         val date = SimpleDateFormat("dd-MM-yyyy HH:mm", Locale.getDefault()).format(Date())
-        val sb = StringBuilder()
-
-        // Header
-        sb.append("[L]\n".repeat(paddingTop))
-        sb.append("[C]<b>$stallName</b>\n")
-        sb.append("[C]$address\n")
-        sb.append("[C]$phone\n")
-        sb.append("[C]${"-".repeat(printerWidth)}\n")
-        
-        // Transaction info
-        sb.append("[L]Date: $date\n")
-        sb.append("[L]Txn ID: $txnId\n")
-        if (!buyerName.isNullOrBlank()) {
-            sb.append("[L]Buyer: $buyerName\n")
-        }
-        if (!buyerPhone.isNullOrBlank()) {
-            sb.append("[L]Phone: $buyerPhone\n")
-        }
-        sb.append("[C]${"-".repeat(printerWidth)}\n")
-        
-        // Items header
-        // Calculate space for header based on printer width
-        val reservedSpace = 20  // Same as item formatting
-        val availableForHeader = printerWidth - reservedSpace
-        val headerItemText = "Item".padEnd(availableForHeader)
-        sb.append("[L]<b>$headerItemText Qty  Price   Total</b>\n")
-        items.forEach { item ->
-            val qty = item.quantity.toString().padStart(3)
-            val price = String.format("%.1f", item.unitPrice).padStart(6)
-            val total = String.format("%.1f", item.total).padStart(6)
-            
-            // Calculate space needed for quantity, price, total columns
-            // Format: "  Qty  Price  Total" = 3 + 2 + 6 + 2 + 6 = 19 chars
-            val reservedSpace = 20
-            val availableForName = printerWidth - reservedSpace
-            
-            // If item name fits on same line, put it there
-            // Otherwise, put item name on its own line
-            if (item.name.length <= availableForName) {
-                // Item name fits - format: "Name        Qty  Price  Total"
-                val paddedName = item.name.padEnd(availableForName)
-                sb.append("[L]$paddedName$qty  $price $total\n")
-            } else {
-                // Item name is too long - put on separate line
-                sb.append("[L]${item.name}\n")
-                // Then put qty, price, total aligned to the right
-                val spacing = " ".repeat(availableForName)
-                sb.append("[L]$spacing $qty $price $total\n")
-            }
-        }
-        
-        // Totals
-        sb.append("[C]${"-".repeat(printerWidth)}\n")
-        sb.append("[R]Subtotal: ${String.format("%.2f", subtotal)}\n")
-        if (discount > 0) {
-            sb.append("[R]Discount: -${String.format("%.2f", discount)}\n")
-        }
-        sb.append("[C]${"-".repeat(printerWidth)}\n")
-        sb.append("[R]<b>Total: ${String.format("%.2f", total)}</b>\n")
-        
-        // Lines before cut
-        sb.append("[L]\n".repeat(linesBeforeCut))
-        
-        // Footer
-        sb.append("[C]Thank You!\n")
-        sb.append("[L]\n".repeat(paddingBottom))
-        
-        // Cut command
-//        sb.append("[D]<cut>")
-
-        return sb.toString()
+        return "[C]<b>$stallName</b>\n" +
+            "[C]$address\n" +
+            "[C]$phone\n" +
+            "[C]--------------------------------\n" +
+            "[L]Date: $date\n" +
+            "[L]Txn ID: $txnId\n" +
+            (if (!buyerName.isNullOrBlank()) "[L]Buyer: $buyerName\n" else "") +
+            (if (!buyerPhone.isNullOrBlank()) "[L]Phone: $buyerPhone\n" else "") +
+            "[C]--------------------------------\n" +
+            "[L]<b>Item      Qty  Price  Total</b>\n" +
+            items.joinToString(separator = "") { item ->
+                val name = item.name.take(8).padEnd(8)
+                val qty = item.quantity.toString().padStart(3)
+                val price = String.format("%.1f", item.unitPrice).padStart(6)
+                val itemTotal = String.format("%.1f", item.total).padStart(6)
+                "[L]$name  $qty  $price  $itemTotal\n"
+            } +
+            "[C]--------------------------------\n" +
+            "[R]Subtotal: ${String.format("%.2f", subtotal)}\n" +
+            (if (discount > 0) "[R]Discount: -${String.format("%.2f", discount)}\n" else "") +
+            "[R]<b>Total: ${String.format("%.2f", total)}</b>\n" +
+            "[C]--------------------------------\n" +
+            "[C]Thank You!\n" +
+            "[L]\n".repeat(paddingBottom)
     }
     
     /**

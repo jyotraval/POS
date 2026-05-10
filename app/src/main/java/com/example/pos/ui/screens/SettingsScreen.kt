@@ -49,19 +49,22 @@ fun SettingsScreen(
     val snackbarHostState = remember { androidx.compose.material3.SnackbarHostState() }
     val settings by settingsDao.getSettings().collectAsState(initial = null)
     
-    var stallName by remember { mutableStateOf(settings?.stallName ?: "") }
-    var address by remember { mutableStateOf(settings?.address ?: "") }
+    val HARD_CODED_STALL_NAME = "City Samosa - Shree Foods"
+    val stallName = HARD_CODED_STALL_NAME
+    val HARD_CODED_ADDRESS = "A-8, Balaji Complex, Idar 383430"
+    val address = HARD_CODED_ADDRESS
     var phone by remember { mutableStateOf(settings?.phone ?: "") }
     var pin by remember { mutableStateOf(settings?.pin ?: "1111") }
     var printerMac by remember { mutableStateOf(settings?.printerMac ?: "") }
     var paddingTop by remember { mutableStateOf(settings?.paddingTop?.toString() ?: "2") }
     var paddingBottom by remember { mutableStateOf(settings?.paddingBottom?.toString() ?: "2") }
-    var printerWidth by remember { mutableStateOf(settings?.printerWidth?.toString() ?: "42") }
+    var printerWidth by remember { mutableStateOf(settings?.printerWidth?.toString() ?: "32") }
     var linesBeforeCut by remember { mutableStateOf(settings?.linesBeforeCut?.toString() ?: "2") }
     
     var showResetDialog by remember { mutableStateOf(false) }
     var showSaveSuccess by remember { mutableStateOf(false) }
     var showClearTransactionsDialog by remember { mutableStateOf(false) }
+    var testPrintDisabled by remember { mutableStateOf(false) }
     
     // Confirmation text fields
     var clearConfirmText by remember { mutableStateOf("") }
@@ -76,14 +79,13 @@ fun SettingsScreen(
 
     LaunchedEffect(settings) {
         if (settings != null) {
-            stallName = settings?.stallName ?: ""
-            address = settings?.address ?: ""
+            // stallName and address are hard-coded and not read from settings
             phone = settings?.phone ?: ""
             pin = settings?.pin ?: "1111"
             printerMac = settings?.printerMac ?: ""
             paddingTop = settings?.paddingTop?.toString() ?: "2"
             paddingBottom = settings?.paddingBottom?.toString() ?: "2"
-            printerWidth = settings?.printerWidth?.toString() ?: "42"
+            printerWidth = settings?.printerWidth?.toString() ?: "32"
             linesBeforeCut = settings?.linesBeforeCut?.toString() ?: "2"
         }
     }
@@ -151,7 +153,7 @@ fun SettingsScreen(
                                             printerMac = printerMac,
                                             paddingTop = paddingTop.toIntOrNull() ?: 2,
                                             paddingBottom = paddingBottom.toIntOrNull() ?: 2,
-                                            printerWidth = printerWidth.toIntOrNull() ?: 42,
+                                            printerWidth = printerWidth.toIntOrNull() ?: 32,
                                             linesBeforeCut = linesBeforeCut.toIntOrNull() ?: 2
                                         )
                                     )
@@ -181,15 +183,19 @@ fun SettingsScreen(
                         Text("Stall Details", style = MaterialTheme.typography.titleLarge)
                         OutlinedTextField(
                             value = stallName,
-                            onValueChange = { stallName = it },
+                            onValueChange = {},
                             label = { Text("Stall Name") },
-                            modifier = Modifier.fillMaxWidth()
+                            modifier = Modifier.fillMaxWidth(),
+                            enabled = false,
+                            supportingText = { Text("Stall name is fixed") }
                         )
                         OutlinedTextField(
                             value = address,
-                            onValueChange = { address = it },
+                            onValueChange = {},
                             label = { Text("Address") },
-                            modifier = Modifier.fillMaxWidth()
+                            modifier = Modifier.fillMaxWidth(),
+                            enabled = false,
+                            supportingText = { Text("Address is fixed") }
                         )
                         OutlinedTextField(
                             value = phone,
@@ -379,6 +385,10 @@ fun SettingsScreen(
                     )
                     EnhancedButton(
                         onClick = {
+                            // debounce test print taps and visually disable for 4 seconds
+                            testPrintDisabled = true
+
+                            // Kick off the actual print in background
                             scope.launch {
                                 try {
                                     val settings = Settings(
@@ -389,10 +399,10 @@ fun SettingsScreen(
                                         printerMac = printerMac,
                                         paddingTop = paddingTop.toIntOrNull() ?: 2,
                                         paddingBottom = paddingBottom.toIntOrNull() ?: 2,
-                                        printerWidth = printerWidth.toIntOrNull() ?: 42,
+                                        printerWidth = printerWidth.toIntOrNull() ?: 32,
                                         linesBeforeCut = linesBeforeCut.toIntOrNull() ?: 2
                                     )
-                                    
+
                                     val success = com.example.pos.util.PrinterUtils.testPrint(
                                         context = context,
                                         macAddress = printerMac,
@@ -404,7 +414,7 @@ fun SettingsScreen(
                                         linesBeforeCut = settings.linesBeforeCut,
                                         printerWidth = settings.printerWidth
                                     )
-                                    
+
                                     if (success) {
                                         showSaveSuccess = true
                                     } else {
@@ -414,12 +424,35 @@ fun SettingsScreen(
                                     // Show error
                                 }
                             }
+
+                            // Re-enable after cooldown regardless of print outcome
+                            scope.launch {
+                                kotlinx.coroutines.delay(2000L)
+                                testPrintDisabled = false
+                            }
                         },
+                        enabled = !testPrintDisabled,
                         modifier = Modifier.fillMaxWidth(),
                         variant = ButtonVariant.Secondary,
                         size = ButtonSize.Large
                     ) {
-                        Text("Test Print")
+                        if (testPrintDisabled) {
+                            Row(
+                                verticalAlignment = Alignment.CenterVertically,
+                                horizontalArrangement = Arrangement.Center,
+                                modifier = Modifier.fillMaxWidth()
+                            ) {
+                                CircularProgressIndicator(
+                                    modifier = Modifier.size(16.dp),
+                                    strokeWidth = 2.dp,
+                                    color = MaterialTheme.colorScheme.onPrimary
+                                )
+                                Spacer(modifier = Modifier.width(8.dp))
+                                Text("Testing", style = MaterialTheme.typography.labelLarge)
+                            }
+                        } else {
+                            Text("Test Print")
+                        }
                     }
                     }
                 }
@@ -441,13 +474,13 @@ fun SettingsScreen(
                             modifier = Modifier.clickable {
                                 tapCount++
                                 if (tapCount == 5) {
-                                    Toast.makeText(context, "v1.0.0 (stable)", Toast.LENGTH_SHORT).show()
+                                    Toast.makeText(context, "v2 - By jyotraval.vercel.app", Toast.LENGTH_SHORT).show()
                                     tapCount = 0
                                 }
                             }
                         )
                         Text(
-                            text = "Crafted for offline sales",
+                            text = "Made By JyotR",
                             style = MaterialTheme.typography.bodyMedium,
                             color = MaterialTheme.colorScheme.onSurfaceVariant
                         )

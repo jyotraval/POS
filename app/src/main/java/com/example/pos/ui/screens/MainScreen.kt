@@ -26,9 +26,12 @@ import androidx.compose.material.icons.filled.Analytics
 import androidx.compose.material.icons.automirrored.filled.ReceiptLong
 import androidx.compose.material.icons.filled.Speed
 import androidx.compose.material.icons.filled.Security
+import androidx.compose.material.icons.filled.ExitToApp
 import androidx.compose.material.icons.filled.CloudSync
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.platform.LocalContext
+import android.app.Activity
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -58,10 +61,14 @@ import com.example.pos.ui.utils.*
 fun MainScreen(
     onNavigate: (String) -> Unit
 ) {
+    val context = LocalContext.current
     Scaffold(
         topBar = {
             PosTopBar(
                 title = "POS System",
+                onBackClick = { (context as? Activity)?.finishAffinity() },
+                navIcon = androidx.compose.material.icons.Icons.Default.ExitToApp,
+                navIconTint = MaterialTheme.colorScheme.error,
                 actions = {
                     IconButton(onClick = { onNavigate(Screen.Settings.route) }) {
                         Icon(Icons.Default.Settings, "Settings")
@@ -144,7 +151,7 @@ private fun HeroSection() {
                     modifier = Modifier.weight(1f)
                 ) {
                     Text(
-                        text = "POS System",
+                        text = "POS System - City Samosa, Idar",
                         style = MaterialTheme.typography.headlineLarge,
                         fontWeight = FontWeight.Bold,
                         color = MaterialTheme.colorScheme.onSurface
@@ -173,7 +180,7 @@ private fun HeroSection() {
                 }
             }
             StatusChip(
-                text = "Offline Ready",
+                text = "Status: Ready...",
                 status = ChipStatus.Success
             )
         }

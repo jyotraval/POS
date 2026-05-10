@@ -125,7 +125,7 @@ object InventoryUtils {
                 try {
                     val parts = line.split(",").map { it.trim() }
                     if (parts.size >= 3) {
-                        val category = parts[1].ifBlank { "Defaultlt" }
+                        val category = parts[1].ifBlank { "default01" }
                         inventoryItems.add(
                             InventoryItem(
                                 item = parts[0],
@@ -172,7 +172,7 @@ object InventoryUtils {
                     return@forEach
                 }
 
-                // Check if category exists (use Defaultlt if blank)
+                // Check if category exists (use default01 if blank)
                 val categoryKey = inventoryItem.category.lowercase()
                 if (!existingCategories.containsKey(categoryKey)) {
                     categoriesToAdd.add(inventoryItem.category)
@@ -275,11 +275,35 @@ object InventoryUtils {
     fun getSampleCsvContent(): String {
         return """
             Item,Category,Price
-            Apple,Fruits,1.50
-            Banana,Fruits,0.80
-            Bread,Bakery,2.00
-            Milk,Dairy,3.50
-            Rice,Groceries,4.00
+            Samosa,Samosa,15
+            Samosa Pav,Samosa,20
+            Chole Samosa,Samosa,50
+            Dahi Samosa,Samosa,30
+            Jain Samosa,Samosa,20
+            Navtad Samosa 12p,Samosa,100
+            Chinese Samosa 12p,Samosa,100
+            Bread Pakoda,Bread Pakoda,25
+            Crispy Bread Pakoda,Bread Pakoda,30
+            Pav,Extra,5
+            Vada,Vada,15
+            VadaPav,Vada,20
+            Crispy Vada,Vada,20
+            Crispy VadaPav,Vada,25
+            Ulta Masala VadaPav,Vada,25
+            Butter Masala VadaPav,Vada,30
+            Cheese VadaPav,Vada,40
+            Kachori,Snacks,50
+            Haff Kachori,Snacks,25
+            Mumbai MisalPav,Snacks,100
+            Chole Kulcha,New Products,100
+            Aloo TikkiChat,New Products,40
+            Chole TikkiChat,New Products,50
+            Dahi Vada,New Products,50
+            Chaas,Beverages,15
+            Special Lassi,Beverages,45
+            Mango Lassi,Beverages,40
+            Water 1/2 Ltr,Beverages,10
+            Water 1 Ltr,Beverages,20
         """.trimIndent()
     }
     

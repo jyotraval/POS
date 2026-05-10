@@ -13,8 +13,7 @@ Here's a clean **Product Requirements Document (PRD)** for your **custom Food St
 **Single Food Stall Client**
 
 ## Prepared By
-Jyot Raval ~~For City Samosa~~
-Genral Purpose.
+Jyot Raval For City Samosa
 
 ---
 

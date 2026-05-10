@@ -7,6 +7,8 @@ import androidx.compose.material3.*
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
@@ -16,6 +18,8 @@ import androidx.compose.ui.unit.dp
 fun PosTopBar(
     title: String,
     onBackClick: (() -> Unit)? = null,
+    navIcon: ImageVector? = Icons.AutoMirrored.Filled.ArrowBack,
+    navIconTint: Color? = null,
     actions: @Composable RowScope.() -> Unit = {}
 ) {
     CenterAlignedTopAppBar(
@@ -27,11 +31,12 @@ fun PosTopBar(
             actionIconContentColor = MaterialTheme.colorScheme.onSurface
         ),
         navigationIcon = {
-            if (onBackClick != null) {
+            if (onBackClick != null && navIcon != null) {
                 IconButton(onClick = onBackClick) {
                     Icon(
-                        imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                        contentDescription = "Back"
+                                        imageVector = navIcon,
+                        contentDescription = "Navigation",
+                        tint = navIconTint ?: MaterialTheme.colorScheme.onSurface
                     )
                 }
             }
