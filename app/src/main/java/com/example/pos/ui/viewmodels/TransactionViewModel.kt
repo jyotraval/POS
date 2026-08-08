@@ -130,7 +130,8 @@ fun selectTransaction(transaction: Transaction?) {
                     return@launch
                 }
 
-                val items = selectedTransactionItems.value.map { transactionItem ->
+                val dbTransactionItems = transactionDao.getTransactionItems(transaction.id).first()
+                val items = dbTransactionItems.map { transactionItem ->
                     val item = itemDao.getItemById(transactionItem.itemId)
                     PrinterUtils.ReceiptItem(
                         name = item?.name ?: "Unknown Item",

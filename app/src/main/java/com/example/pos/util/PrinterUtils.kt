@@ -275,11 +275,11 @@ object PrinterUtils {
             
             android.util.Log.d("PrinterUtils", "Found target device: ${targetDevice.name} (${targetDevice.address})")
             
-            // Use the legacy paired-printer selection flow that was previously working.
+            // Create connection specifically for target device matching macAddress
             val connection = try {
-                BluetoothPrintersConnections.selectFirstPaired()
+                BluetoothConnection(targetDevice)
             } catch (e: Exception) {
-                android.util.Log.e("PrinterUtils", "Failed to create Bluetooth connection", e)
+                android.util.Log.e("PrinterUtils", "Failed to create Bluetooth connection for device ${targetDevice.address}", e)
                 null
             }
             
